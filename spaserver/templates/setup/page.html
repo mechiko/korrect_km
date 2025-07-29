@@ -1,0 +1,16 @@
+<!-- SetupModel -->
+<div id="page" class="mt-6 text-sm">
+{{if .IsConfigDB}}
+  {{ template "configdb" . }}
+  {{if .UseConfigDB}}
+      <!-- отображаем данные подключения при использовании конфиг.дб -->
+      {{ template "pageconfig" . }}
+  {{else}}
+    <!-- отображаем редактор подключения -->
+    {{ template "pageedit" . }}
+  {{end}}
+{{else}}
+  <!-- отображаем редактор подключения -->
+  {{ template "pageedit" . }}
+{{end}}
+</div>

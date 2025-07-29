@@ -1,0 +1,22 @@
+<div class="w-full">
+  <p class=" text-gray-700 text-sm font-bold">КЭП:</p>
+  <div class="ml-1 w-full">
+    <select id="hashkey" name="hashkey" class="form-select
+      w-full px-3 py-1.5 
+      text-sm text-gray-700
+      bg-white bg-clip-padding bg-no-repeat
+      border border-solid border-gray-300 rounded
+      transition ease-in-out
+      focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none" 
+      aria-label="Default select example">
+      <option value="empty">-- выберите сертификат --</option>
+      {{ range $j, $row := $.MyStore }}
+        {{if eq $.HashKey $j}}
+          <option value="{{$j}}" selected>{{$row}}</option>
+        {{else}}          
+          <option value="{{$j}}">{{$row}}</option>
+        {{end}}
+      {{end}}
+      </select>
+  </div>
+</div>

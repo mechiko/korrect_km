@@ -1,0 +1,117 @@
+<html data-theme="lofi">
+<head>
+  <meta charset="UTF-8" />
+      <!--
+        * 204 No Content by default does nothing, but is not an error
+        * 2xx, 3xx and 422 responses are non-errors and are swapped
+        * 4xx & 5xx responses are not swapped and are errors
+        * all other responses are swapped using "..." as a catch-all
+      -->
+  <meta
+    name="htmx-config"
+    content='{
+          "responseHandling":[
+              {"code":"204", "swap": false},
+              {"code":"[23]..", "swap": true},
+              {"code":"422", "swap": true},
+              {"code":"[45]..", "swap": false, "error":true},
+              {"code":"...", "swap": true}
+          ]
+      }'
+  />
+  <title></title>
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/apple-touch-icon.png"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon/favicon-32x32.png"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16x16.png"/>
+  <link rel="manifest" href="/assets/favicon/site.webmanifest"/>
+  <link rel="stylesheet" type="text/css" href="/assets/css/roboto.css">
+  <link rel="stylesheet" type="text/css" href="/assets/css/roboto_condenced.css">
+  <!-- эти темы и библиотека daisyui очень тяжелые пока обхожусь чистым tailwind -->
+  <!-- <link rel="stylesheet" type="text/css" href="/assets/css/daisyui.full.min.css">
+  <link rel="stylesheet" type="text/css" href="/assets/css/themes.css" /> -->
+  <!-- <link rel="stylesheet" type="text/css" href="/assets/css/xp.css"> -->
+  <link rel="stylesheet" type="text/css" href="/assets/css/style.css">
+  <link rel="stylesheet" type="text/css" href="/assets/css/modal.css">
+  <link rel="stylesheet" type="text/css" href="/assets/css/modal_json.css">
+  <!-- <link rel="stylesheet" type="text/css" href="/assets/css/highlight.min.css"> -->
+  <script src="/assets/js/tailwind.js"></script>
+  <!-- порядок hyperscript и htmx важен  -->
+  <script src="/assets/js/hyperscript.min.js"></script>
+  <script src="/assets/js/htmx.min.js"></script>
+  <script src="/assets/js/iconify-icon.min.js"></script>
+  <script src="/assets/js/datamatrix.js"></script>
+  <script src="/assets/js/highlight.min.js"></script>
+  <script src="/assets/js/sweetalert2.js"></script>
+</head>
+<body class="antialiased h-full bg-slate-50 select-none" 
+    _="on htmx:responseError log 'A error occurred' end
+    on keydown[key=='Escape'] log 'ESC pressed' then if modal is not null remove modal end then trigger closeModalJson end
+    ">
+  <div class="grid grid-rows-[auto_1fr_auto] h-full">
+      <header class="">
+        <div id="header" hx-get="/header" hx-trigger="load" hx-target="#header" hx-swap="outerHTML"></div>
+      </header>
+      <main class="h-full bg-slate-50 overflow-scroll">
+        <!-- индикатор загрузки действия запроса -->
+        <div id="ind1" class="z-99 absolute w-full flex justify-center htmx-indicator">
+          <div class="mx-auto">
+            <img class="" src="/assets/images/bars.svg" alt="loading" style="width: 36px; height: 24px">
+          </div>
+        </div>
+        <!-- когда срабатывает тут отображается сообщение errormsg -->
+        <div id="alert" class="pl-4 hidden"></div>
+        <div id="sse_error"></div>
+        <!-- сюда загружается страница по умолчанию при старте, при обновлении здесь текущая страница spaserver.activePage -->
+        <div id="app" hx-get="/page" hx-trigger="load" hx-target="#app" hx-swap="innerHTML" class="m-2"></div>
+      </main>
+      <footer>
+        <div id="footer" hx-get="/footer" hx-trigger="load" hx-target="#footer" hx-swap="outerHTML"></div>
+      </footer>
+  </div>
+
+  <!-- <script>hljs.highlightAll();</script> -->
+  <script> 
+    htmx.on("htmx:sendError", function(evt) {
+      console.log("Send ERROR :", evt.detail);
+    });
+  </script>  
+  <script>
+    // Example taken from: https://www.w3schools.com/html/html5_serversentevents.asp
+    // sse подключение и обновление по событиям
+    if (typeof (EventSource) !== "undefined") {
+      const source = new EventSource("http://127.0.0.1:8888/sse?stream=error");
+      console.log("EventSource(/sse/error)")
+      source.onmessage = function (event) {
+        console.log("sse error: ", event)
+        Swal.fire({
+          title: "Ошибка",
+          html: event.data,
+        });
+      };
+    } else {
+      document.getElementById("result").innerHTML = "Sorry, your browser does not support server-sent events...";
+    }
+    if (typeof (EventSource) !== "undefined") {
+      const source = new EventSource("http://127.0.0.1:8888/sse?stream=info");
+      console.log("EventSource(/sse/info)")
+      source.onmessage = function (event) {
+        console.log("sse info: ", event)
+        Swal.fire({
+          html: event.data,
+          icon: "info",
+        });
+      };
+    } else {
+      document.getElementById("result").innerHTML = "Sorry, your browser does not support server-sent events...";
+    }
+    document.body.addEventListener("showMessage", function(evt){
+      console.log('event ', evt);
+      Swal.fire({
+          icon: evt.detail.level,
+          html: evt.detail.message,
+        });
+    })
+  </script>
+</body>
+</html>
+

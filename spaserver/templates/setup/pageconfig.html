@@ -1,0 +1,34 @@
+<!-- SetupModel -->
+<div id="pageconfig">
+  <div class="mt-2 p-1 rounded-lg border border-gray-300">
+    {{if .TokenGIS}}
+    <div class="flex items-center">
+      <p class="mr-2 text-sm font-bold text-gray-700">Токен&nbsp;ГИС:</p>
+      <p class="w-full truncate">{{printf "%.6s…%.4s" .TokenGIS .TokenGIS}}</p>
+    </div>
+    {{end}}
+    {{if .TokenSUZ}}<span class="mb-2 text-sm font-bold text-gray-700">Токен СУЗ:</span><span class="pl-2 w-full">{{printf "%.40s" .TokenSUZ}}</span><br>{{end}}
+  </div>
+  <div class="mt-2">
+    <form id="form1">
+      <input type="hidden" id="omsid" name="omsid" value="{{.OmsID}}">
+      <input type="hidden" id="deviceid" name="deviceid" value="{{.DeviceID}}">
+      <input type="hidden" id="hashkey" name="hashkey" value="{{$.HashKey}}">
+    </form>
+    <div class="mb-4">
+      <span class="mb-2 text-sm font-bold text-gray-700">OMS ID:</span><span class="pl-2 w-full">{{.OmsID}}</span><br>
+      <span class="mb-2 text-sm font-bold text-gray-700">Устройство:</span><span class="pl-2 w-full">{{.DeviceID}}</span><br>
+      <span class="mb-2 text-sm font-bold text-gray-700">Сертификат:</span><span class="pl-2 w-full">{{$.HashKey}} {{index $.MyStore $.HashKey}}</span><br>
+    </div>
+    <div class="mb-6 flex items-center justify-between">
+      <button 
+        class="focus:shadow-outline rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 focus:outline-none" 
+        hx-post="/setup/ping" hx-target="#page" hx-swap="outerHTML" hx-include="#form1"
+        type="button">
+      Пинг СУЗ
+      </button>
+    </div>
+    <!-- когда будет результат пинга он тут отобразится -->
+    {{ template "ping" .}}
+  </div>
+</div>

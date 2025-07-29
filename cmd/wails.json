@@ -1,0 +1,10 @@
+{
+  "name": "makemodel",
+  "outputfilename": "makemodel",
+  "frontend:install": "",
+  "frontend:build": "",
+  "author": {
+    "name": "mechiko",
+    "email": "kbprime@gmail.com"
+  }
+}

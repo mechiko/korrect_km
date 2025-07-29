@@ -1,0 +1,35 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Wails: Production htmxtempl",
+      "type": "go",
+      "request": "launch",
+      "mode": "exec",
+      "program": "${workspaceFolder}/cmd/korrectkm.exe",
+      "preLaunchTask": "build",
+      "cwd": "${workspaceFolder}/cmd"
+    },
+    {
+      "name": "Wails: Debug htmxtempl",
+      "type": "go",
+      "request": "launch",
+      "mode": "exec",
+      "program": "${workspaceFolder}/cmd/korrectkm.exe",
+      "preLaunchTask": "build debug",
+      "args": [
+         "-local",  
+      ],
+      "cwd": "${workspaceFolder}/cmd"
+    },
+    {
+      "name": "Wails: Dev htmxtempl",
+      "type": "go",
+      "request": "launch",
+      "mode": "exec",
+      "program": "${workspaceFolder}/cmd/korrectkm.exe",
+      "preLaunchTask": "build dev",
+      "cwd": "${workspaceFolder}/cmd"
+    }
+  ]
+}

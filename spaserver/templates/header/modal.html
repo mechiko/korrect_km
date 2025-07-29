@@ -1,0 +1,21 @@
+<div id="modal" class="block" _="on closeModal add .closing then wait for animationend then remove me">
+	<div class="modal-underlay" _="on click trigger closeModal"></div>
+	<div class="modal-content top-8 left-2 w-fit">
+    <ul class="m-1 space-x-2 space-y-2">
+{{ range $j, $row := $.Items }}
+{{ if not $row.Active }}
+    <li class="space-x-2 space-y-2 rounded bg-gray-100 p-1 hover:bg-gray-400">
+      <a class="w-full" hx-get="/header/{{$row.Name}}" hx-trigger="click" hx-target="this" hx-swap="none">
+        <div class="flex items-center">
+          {{noescape $row.Svg}}
+          <span class="pl-1">{{$row.Title}}</span>
+        </div>
+     </a>
+  </li>
+{{ end }}
+{{ end }}    
+    </ul>
+<!-- <button class="btn danger" _="on click trigger closeModal">Close</button> -->
+  </div>
+</div>
+

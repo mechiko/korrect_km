@@ -1,0 +1,13 @@
+<!-- тут надо переделать одновременно и ошибки и проверки не отобразятся -->
+{{if $.Errors}}
+<div id="errormsg" 
+     class="pl-4"
+     hx-swap-oob="true"
+>
+  <div role="alert" class="pl-4 alert alert-error alert-soft">
+    {{range $key, $err := $.Errors}}
+    <span>Ошибка {{$key}}: {{$err}}</span>
+    {{end}}
+  </div>
+</div>
+{{end}}
