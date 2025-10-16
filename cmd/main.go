@@ -14,11 +14,12 @@ import (
 	"korrectkm/spaserver"
 	"korrectkm/trueclient"
 	"korrectkm/trueclient/mystore"
-	"korrectkm/utility"
 	"korrectkm/zaplog"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/mechiko/utility"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/logger"

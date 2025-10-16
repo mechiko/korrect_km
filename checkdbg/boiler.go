@@ -3,7 +3,7 @@ package checkdbg
 import (
 	// "korrectkm/spaserver"
 	// "korrectkm/spaserver/templates"
-	"korrectkm/utility"
+	"github.com/mechiko/utility"
 )
 
 // func (c *Checks) GuideGtins() error {
@@ -65,5 +65,6 @@ import (
 // }
 
 func (c *Checks) ParseZnak(znak string) string {
-	return utility.Serial(znak)
+	z, _ := utility.ParseCisInfo(znak)
+	return z.Serial
 }

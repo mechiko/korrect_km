@@ -3,8 +3,9 @@
 package config
 
 import (
-	"korrectkm/utility"
 	"path/filepath"
+
+	"github.com/mechiko/utility"
 )
 
 // если каталог ../spaserver/templates в режиме разработки существует, то прописываем его в переменную

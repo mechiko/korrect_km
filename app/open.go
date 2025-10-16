@@ -1,9 +1,7 @@
 package app
 
 import (
-	"korrectkm/utility"
-
-	"github.com/skratchdot/open-golang/open"
+	"github.com/mechiko/utility"
 )
 
 func (a *app) OpenDir() {
@@ -16,7 +14,7 @@ func (a *app) OpenDir() {
 	if a.Config().Configuration().Output == "" {
 		return
 	}
-	if err := open.Run(a.Config().Configuration().Output); err != nil {
+	if err := utility.OpenFileInShell(a.Config().Configuration().Output); err != nil {
 		a.Logger().Errorf("Dir %s %s", a.Config().Configuration().Output, err.Error())
 	}
 }
@@ -25,7 +23,7 @@ func (a *app) Open(url string) {
 	if url == "" {
 		return
 	}
-	if err := utility.OpenURL(url); err != nil {
+	if err := utility.OpenHttpLinkInShell(url); err != nil {
 		a.Logger().Errorf("%w", err)
 	}
 }
