@@ -77,6 +77,8 @@ github.com/mattn/go-sqlite3 v1.14.24 h1:tpSp2G2KyMnnQu99ngJ47EIkWVmliIizyZBfPrBW
 github.com/mattn/go-sqlite3 v1.14.24/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
 github.com/mechiko/barcode v1.0.0 h1:VPUj4SvvgDvYDVnnHHQRCPxvmpS7k6BaJL/Y7IckjQY=
 github.com/mechiko/barcode v1.0.0/go.mod h1:2YcCsikCr3faMlqcqPkZiQqFIkMBv08VS2uQ/x0Cuaw=
+github.com/mechiko/dbscan v0.0.0-20250824090424-a3ed3ef70222 h1:L4wdRazo5mRe5meZLTqQPFBVGS93h829b/77JYtz9/0=
+github.com/mechiko/dbscan v0.0.0-20250824090424-a3ed3ef70222/go.mod h1:FRcT9RW1VWm/jcMeoEk5gVvRD3S6zdcXrfHx9MrLCVs=
 github.com/mechiko/utility v0.0.0-20250901141646-cc9c20f08412 h1:tSsBWXfycoRsuKIGbupznOwY3/n+WOKSJR5UoIpuFUE=
 github.com/mechiko/utility v0.0.0-20250901141646-cc9c20f08412/go.mod h1:UiKyo/JZJxMeY0d+QYo467GGVMADRDnH41q4iJaKoUc=
 github.com/mfridman/interpolate v0.0.2 h1:pnuTK7MQIxxFz1Gr+rjSIx9u7qVjf5VOoM/u6BbAxPY=

@@ -7,12 +7,11 @@ import (
 
 func (r *Repository) Run(ctx context.Context) (err error) {
 	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("%v", r)
+		if rec := recover(); rec != nil {
+			err = fmt.Errorf("%v", rec)
 		}
 	}()
 	// ожидаем завершения контекста
 	<-ctx.Done()
-	r.Logger().Infof("завершаем работу репозитория по контексту")
 	return nil
 }

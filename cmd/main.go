@@ -17,9 +17,10 @@ import (
 	"korrectkm/zaplog"
 	"os"
 	"path/filepath"
-	"strings"
 
+	"github.com/mechiko/dbscan"
 	"github.com/mechiko/utility"
+	"go.uber.org/zap"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/logger"
@@ -39,118 +40,135 @@ var dir string
 // если local true то папка создается локально
 var local = flag.Bool("local", false, "")
 
-func init() {
-	flag.Parse()
-	fileExe = os.Args[0]
-	dir, _ = filepath.Abs(filepath.Dir(fileExe))
-	os.Chdir(dir)
-	if *local {
-		if filepath.IsAbs(config.ConfigPath) {
-			utility.AbsPathCreate(config.ConfigPath)
-		} else {
-			utility.PathCreate(config.ConfigPath)
-		}
-		if filepath.IsAbs(config.LogPath) {
-			utility.AbsPathCreate(config.LogPath)
-		} else {
-			utility.PathCreate(config.LogPath)
-		}
-		if filepath.IsAbs(config.DbPath) {
-			utility.AbsPathCreate(config.DbPath)
-		} else {
-			utility.PathCreate(config.DbPath)
-		}
-		zaplog.Run(config.LogPath, config.Name)
-	} else {
-		// создаем папки по конфигурации
-		if filepath.IsAbs(config.ConfigPath) {
-			utility.AbsPathCreate(config.ConfigPath)
-		} else {
-			utility.HomePathCreate(config.ConfigPath)
-		}
-		if filepath.IsAbs(config.LogPath) {
-			utility.AbsPathCreate(config.LogPath)
-		} else {
-			utility.HomePathCreate(config.LogPath)
-		}
-		if filepath.IsAbs(config.DbPath) {
-			utility.AbsPathCreate(config.DbPath)
-		} else {
-			utility.HomePathCreate(config.DbPath)
-		}
-		zaplog.Run(filepath.Join(utility.UserHomeDir(), config.LogPath), config.Name)
+func errMessageExit(loger *zap.SugaredLogger, title string, err error) {
+	if loger != nil {
+		loger.Errorf("%s %v", title, err)
 	}
+	utility.MessageBox(title, err.Error())
+	os.Exit(-1)
 }
 
 func main() {
+	flag.Parse()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	group, groupCtx := errgroup.WithContext(ctx)
 
-	loger := zaplog.Logger
-	loger.Debug("zaplog started")
-	loger.Infof("mode = %s", config.Mode)
-
 	cfg, err := config.New("", !*local)
 	if err != nil {
-		loger.Errorf("%s %s", modError, err.Error())
-		panic(err.Error())
-	}
-	// создаем папку вывода после инициализации конфигурации
-	if *local {
-		if filepath.IsAbs(cfg.Configuration().Output) {
-			utility.AbsPathCreate(cfg.Configuration().Output)
-		} else {
-			utility.PathCreate(cfg.Configuration().Output)
-		}
-	} else {
-		if filepath.IsAbs(cfg.Configuration().Output) {
-			utility.AbsPathCreate(cfg.Configuration().Output)
-		} else {
-			utility.HomePathCreate(filepath.Join(config.LogPath, cfg.Configuration().Output))
-		}
+		errMessageExit(nil, "ошибка конфигурации", err)
 	}
 
-	loger.Infof("путь шаблонов %s", config.RootPathTemplates())
+	var logsOutConfig = map[string][]string{
+		"logger":   {"stdout", filepath.Join(cfg.LogPath(), config.Name)},
+		"echo":     {filepath.Join(cfg.LogPath(), "echo")},
+		"reductor": {filepath.Join(cfg.LogPath(), "reductor")},
+		"true":     {filepath.Join(cfg.LogPath(), "true")},
+	}
+	zl, err := zaplog.New(logsOutConfig, true)
+	if err != nil {
+		errMessageExit(nil, "ошибка создания логера", err)
+	}
 
-	// создаем редуктор для хранения моделей приложения
-	reductor.New(zaplog.Reductor.Sugar())
+	lg, err := zl.GetLogger("logger")
+	if err != nil {
+		errMessageExit(nil, "ошибка получения логера", err)
+	}
+	loger := lg.Sugar()
+	loger.Debug("zaplog started")
+	loger.Infof("mode = %s", config.Mode)
+	if cfg.Warning() != "" {
+		loger.Infof("pkg:config warning %s", cfg.Warning())
+	}
+	errProcessExit := func(title string, err error) {
+		errMessageExit(loger, title, err)
+	}
+
+	reductorLogger, err := zl.GetLogger("reductor")
+	if err != nil {
+		errProcessExit("Ошибка получения логера для редуктора", err)
+	}
+
+	if err := reductor.New(reductorLogger.Sugar()); err != nil {
+		errProcessExit("Ошибка создания редуктора", err)
+	}
 
 	loger.Info("new webapp")
-	// инитим роутер для http, конфиг и прочее
-	webApp := app.NewWebApp(cfg, zaplog.Logger, dir)
+	// создаем приложение с опциями из конфига и логером основным
+	app := app.New(cfg, loger, dir)
+	app.SetDbSelfPath(cfg.ConfigPath())
+	// бд основные находятся в текущем каталоге если не переопределено в настройках
+	app.SetDefaultDbPath("")
+
+	// инициализируем пути необходимые приложению
+	app.CreatePath()
 
 	loger.Info("start repo")
 	// инициализируем REPO
 
-	dbPath := config.DbPath
-	if !filepath.IsAbs(dbPath) {
-		dbPath = filepath.Join(config.UserHomeDir, dbPath)
+	listDbs := make(dbscan.ListDbInfoForScan)
+	listDbs[dbscan.Config] = &dbscan.DbInfo{}
+	listDbs[dbscan.Other] = &dbscan.DbInfo{
+		File:   "korrectkm.db",
+		Name:   "korrectkm",
+		Driver: "sqlite",
+		Path:   app.DbSelfPath(),
 	}
-	repoStart := repo.New(webApp, dbPath)
-	if len(repoStart.Errors()) > 0 {
-		fullErr := strings.Join(repoStart.Errors(), "\n")
-		utility.MessageBox("Ошибки запуска репозитория", fullErr)
+	listDbs[dbscan.TrueZnak] = &dbscan.DbInfo{}
+
+	err = repo.New(listDbs, ".")
+	if err != nil {
+		utility.MessageBox("Ошибка запуска репозитория", err.Error())
 		os.Exit(-1)
 	}
-	webApp.SetRepo(repoStart)
+	repoStart, err := repo.GetRepository()
+	if err != nil {
+		utility.MessageBox("Ошибка получения репозитория", err.Error())
+		os.Exit(-1)
+	}
 
 	// создаем редуктор с новой моделью
 	modelTcl := trueclient.TrueClientModel{}
 	// читаем модель из файла toml
-	modelTcl.Read(webApp)
+	modelTcl.Read(app)
 	// выставляем присутствие базы конфиг.дб
-	modelTcl.IsConfigDB = repoStart.IsConfig()
+	modelTcl.IsConfigDB = repoStart.Is(dbscan.Config)
 	// если настройка использовать авторизацию алкохелпа то загружаем данные из config.db
 	if modelTcl.UseConfigDB {
-		if repoStart.IsConfig() {
-			modelTcl.OmsID = repoStart.ConfigDB().Key("oms_id")
-			modelTcl.DeviceID = repoStart.ConfigDB().Key("connection_id")
-			modelTcl.HashKey = repoStart.ConfigDB().Key("certificate_thumbprint")
-			modelTcl.TokenSUZ = repoStart.ConfigDB().Key("token_suz")
-			modelTcl.TokenGIS = repoStart.ConfigDB().Key("token_gis_mt")
+		if repoStart.Is(dbscan.Config) {
+			dbCfg, err := repoStart.LockConfig()
+			if err != nil {
+				utility.MessageBox("Ошибка получения конфигурации config.db", err.Error())
+				os.Exit(-1)
+			}
+			defer repoStart.UnlockConfig(dbCfg)
+			modelTcl.OmsID, err = dbCfg.Key("oms_id")
+			if err != nil {
+				utility.MessageBox("Ошибка получения конфигурации config.db", err.Error())
+				os.Exit(-1)
+			}
+			modelTcl.DeviceID, err = dbCfg.Key("connection_id")
+			if err != nil {
+				utility.MessageBox("Ошибка получения конфигурации config.db", err.Error())
+				os.Exit(-1)
+			}
+			modelTcl.HashKey, err = dbCfg.Key("certificate_thumbprint")
+			if err != nil {
+				utility.MessageBox("Ошибка получения конфигурации config.db", err.Error())
+				os.Exit(-1)
+			}
+			modelTcl.TokenSUZ, err = dbCfg.Key("token_suz")
+			if err != nil {
+				utility.MessageBox("Ошибка получения конфигурации config.db", err.Error())
+				os.Exit(-1)
+			}
+			modelTcl.TokenGIS, err = dbCfg.Key("token_gis_mt")
+			if err != nil {
+				utility.MessageBox("Ошибка получения конфигурации config.db", err.Error())
+				os.Exit(-1)
+			}
 		}
 	}
 	// загружаем сертификаты пользователя
@@ -158,7 +176,7 @@ func main() {
 		loger.Errorf("%s", err.Error())
 	}
 
-	reductor.Instance().SetModel(reductor.TrueClient, modelTcl)
+	reductor.Instance().SetModel(modelTcl, false)
 
 	group.Go(func() error {
 		go func() {

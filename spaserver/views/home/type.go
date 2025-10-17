@@ -3,7 +3,6 @@ package home
 import (
 	"korrectkm/config"
 	"korrectkm/reductor"
-	"korrectkm/repo"
 	"strings"
 
 	"github.com/donseba/go-htmx"
@@ -23,7 +22,6 @@ type IServer interface {
 	Logger() *zap.SugaredLogger
 	Echo() *echo.Echo
 	ServerError(c echo.Context, err error) error
-	Repo() *repo.Repository
 	SetActivePage(reductor.ModelType)
 	SetFlush(string, string)
 	RenderString(name string, data interface{}) (str string, err error)

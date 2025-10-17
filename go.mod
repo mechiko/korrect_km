@@ -14,6 +14,7 @@ require (
 	github.com/karagenc/zap4echo v0.1.1
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/mechiko/barcode v1.0.0
+	github.com/mechiko/dbscan v0.0.0-20250824090424-a3ed3ef70222
 	github.com/mechiko/utility v0.0.0-20250901141646-cc9c20f08412
 	github.com/pressly/goose/v3 v3.24.3
 	github.com/spf13/viper v1.20.1

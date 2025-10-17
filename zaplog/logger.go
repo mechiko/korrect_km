@@ -1,100 +1,86 @@
 package zaplog
 
 import (
-	"korrectkm/config"
-	"os"
-	"path"
-	"sync"
+	"context"
+	"fmt"
 
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
-var onlyOnce sync.Once
+var Logger *zap.Logger
 
-var Logger *zap.SugaredLogger
-var Reductor *zap.Logger
-var EchoSugar *zap.Logger
-var TrueSugar *zap.SugaredLogger
+type ZapLog struct {
+	logs map[LogName]*zap.Logger
+}
 
-var LogPath = ""
-var LogName = "log"
-
-func onRun(path string, name string) {
-	LogPath = path
-	if name != "" {
-		LogName = name
+func (z *ZapLog) GetLogger(name string) (*zap.Logger, error) {
+	if isValidLogName(name) {
+		if log, ok := z.logs[LogName(name)]; ok {
+			return log, nil
+		} else {
+			return nil, fmt.Errorf("%s is not created", name)
+		}
+	} else {
+		return nil, fmt.Errorf("%s not valid", name)
 	}
-	onlyOnce.Do(func() {
-		initLogger()
-	})
 }
 
-func OnShutdown() {
-	Logger.Sync()
-	Reductor.Sync()
-	EchoSugar.Sync()
-	TrueSugar.Sync()
+func (z *ZapLog) Shutdown() {
+	fmt.Println("zap log shutdown")
+	for _, log := range z.logs {
+		log.Sync()
+	}
 }
 
-// возврат только после прерывания контекста
-func Run(path string, name string) error {
-	onRun(path, name)
+func New(outConfig map[string][]string, debug bool) (*ZapLog, error) {
+	// проверяем мапу настройки логов
+	for key, val := range outConfig {
+		if !isValidLogName(key) {
+			return nil, fmt.Errorf("wrong name %s", key)
+		}
+		if len(val) < 1 {
+			return nil, fmt.Errorf("string array must be min lenght 1 elements")
+		}
+	}
+	z := &ZapLog{
+		logs: make(map[LogName]*zap.Logger),
+	}
+	err := z.init(outConfig, debug)
+	if err != nil {
+		return nil, fmt.Errorf("init zap logger %v", err)
+	}
+	return z, nil
+}
+
+//	var outConfig = map[string][]string{
+//		"logger":   []string{"stdout"},
+//		"echo":     []string{"stdout", "echo_name"},
+//		"reductor": []string{"stderr"},
+//		"true":     []string{"stdout", "true_name"},
+//	}
+func (z *ZapLog) Run(ctx context.Context) error {
+	// ожидаем завершения контекста
+	<-ctx.Done()
+	fmt.Println("zaplog receive ctx shutdown")
+	z.Shutdown()
 	return nil
 }
 
-func initLogger() {
-	var defaultLogLevel zapcore.Level
-
-	logname := config.Name + ".log"
-	logpath := path.Join(LogPath, logname)
-	configLogger := zap.NewProductionEncoderConfig()
-	// configLogger.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	configLogger.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
-	fileEncoderLogger := zapcore.NewConsoleEncoder(configLogger)
-	consoleEncoder := zapcore.NewConsoleEncoder(configLogger)
-	// writer := zapcore.AddSync(wLoggerRotate)
-	fileLogger, _ := os.OpenFile(logpath, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
-	writer := zapcore.AddSync(fileLogger)
-	defaultLogLevel = zapcore.DebugLevel
-
-	core := zapcore.NewTee(
-		zapcore.NewCore(fileEncoderLogger, writer, defaultLogLevel),
-		zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), defaultLogLevel),
-	)
-	Logger = zap.New(core, zap.AddCaller()).Sugar()
-
-	configReductor := zap.NewProductionEncoderConfig()
-	configReductor.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
-	logpathReductor := path.Join(LogPath, "reductor.log")
-	reductorLogFile, _ := os.OpenFile(logpathReductor, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
-	fileReductorEncoder := zapcore.NewConsoleEncoder(configReductor)
-	writerReductor := zapcore.AddSync(reductorLogFile)
-	core2 := zapcore.NewTee(
-		zapcore.NewCore(fileReductorEncoder, writerReductor, defaultLogLevel),
-	)
-	Reductor = zap.New(core2, zap.AddCaller())
-
-	configEcho := zap.NewProductionEncoderConfig()
-	configEcho.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
-	logpathEcho := path.Join(LogPath, "echo.log")
-	echoLogFile, _ := os.OpenFile(logpathEcho, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
-	fileEchoEncoder := zapcore.NewConsoleEncoder(configEcho)
-	writerEcho := zapcore.AddSync(echoLogFile)
-	core5 := zapcore.NewTee(
-		zapcore.NewCore(fileEchoEncoder, writerEcho, defaultLogLevel),
-	)
-	EchoSugar = zap.New(core5, zap.AddCaller())
-
-	configTrue := zap.NewProductionEncoderConfig()
-	configTrue.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
-	logpathTrue := path.Join(LogPath, "true.log")
-	trueLogFile, _ := os.OpenFile(logpathTrue, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
-	fileTrueEncoder := zapcore.NewConsoleEncoder(configTrue)
-	writerTrue := zapcore.AddSync(trueLogFile)
-	core6 := zapcore.NewTee(
-		zapcore.NewCore(fileTrueEncoder, writerTrue, defaultLogLevel),
-	)
-	TrueSugar = zap.New(core6, zap.AddCaller()).Sugar()
-
+func (z *ZapLog) init(outConfig map[string][]string, debug bool) (err error) {
+	for key, output := range outConfig {
+		if isValidLogName(key) {
+			lg, err := createLogger(output, debug)
+			if err != nil {
+				return fmt.Errorf("name %s %w", key, err)
+			}
+			z.logs[LogName(key)] = lg
+		} else {
+			return fmt.Errorf("wrong name for logger %s", key)
+		}
+	}
+	// для совместимости основной логер пропишем в глобальную переменную
+	if l, ok := z.logs[LogNameLogger]; ok {
+		Logger = l
+	}
+	return nil
 }

@@ -4,8 +4,6 @@ import (
 	"github.com/upper/db/v4"
 )
 
-const modError = "domain:self"
-
 type CisRequest struct {
 	Cis      string `db:"cis"`
 	Status   string `db:"status"`

@@ -1,102 +1,58 @@
 package selfdb
 
 import (
-	"database/sql"
 	_ "embed"
 	"fmt"
-	"korrectkm/config"
-	"korrectkm/repo/dbs"
 
+	"github.com/mechiko/dbscan"
 	"github.com/upper/db/v4"
-	"github.com/upper/db/v4/adapter/mssql"
-	"github.com/upper/db/v4/adapter/sqlite"
-	"go.uber.org/zap"
 )
 
-type ILogCfg interface {
-	Config() config.IConfig
-	Logger() *zap.SugaredLogger
-}
-
-const modError = "repo:selfdb"
+const modError = "selfdb"
 
 type DbSelf struct {
-	ILogCfg
 	dbSession db.Session // открытый хэндл тут
+	dbInfo    *dbscan.DbInfo
+	infoType  dbscan.DbInfoType
+	version   int64
 }
 
-func New(logcfg ILogCfg, a *dbs.DbInfo) *DbSelf {
+func New(info *dbscan.DbInfo) (*DbSelf, error) {
 	db := &DbSelf{
-		ILogCfg: logcfg,
+		dbInfo:   info,
+		infoType: dbscan.Other,
 	}
-	if a.Host == "" {
-		a.Host = "localhost:1433"
+	if info == nil {
+		return nil, fmt.Errorf("%s dbinfo is nil", modError)
 	}
-	switch a.Driver {
-	case "mssql":
-		uri := mssql.ConnectionURL{
-			User:     a.User,
-			Password: a.Pass,
-			Host:     a.Host,
-			Database: a.Name,
-			Options: map[string]string{
-				"encrypt": "disable",
-			},
-		}
-		dbSess, err := mssql.Open(uri)
-		if err != nil {
-			panic(fmt.Sprintf("%s %s", modError, err.Error()))
-		}
-		a.Exists = true
-		db.dbSession = dbSess
-		return db
-	case "sqlite":
-		uri := sqlite.ConnectionURL{
-			Database: a.File,
-			Options: map[string]string{
-				"mode": "rwc",
-				// "_journal_mode": "WAL",
-			},
-		}
-		dbSess, err := sqlite.Open(uri)
-		if err != nil {
-			panic(fmt.Sprintf("%s %s", modError, err.Error()))
-		}
-		db.dbSession = dbSess
-		return db
+	// передаем флаг о необходимости создания, это при запуске приложения из repo
+	// проверяем, если нет создаем, если надо мигрируем
+	// открываем сесиию в этом методе если нет ошибки
+	if err := db.Check(); err != nil {
+		return nil, fmt.Errorf("%s error check %v", modError, err)
 	}
-	panic(fmt.Sprintf("%s не указан драйвер", modError))
+	return db, nil
 }
 
 func (c *DbSelf) Close() (err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("panic %v", r)
-		}
-	}()
 	return c.dbSession.Close()
-}
-
-func (c *DbSelf) DB() *sql.DB {
-	return c.dbSession.Driver().(*sql.DB)
 }
 
 func (c *DbSelf) Sess() db.Session {
 	return c.dbSession
 }
 
-// сделано отдельно чтобы закрывать бд
-func (c *DbSelf) Ping() (err error) {
-	sess := c.dbSession
-	defer func() {
-		if err != nil {
-			if errClose := sess.Close(); errClose != nil {
-				err = fmt.Errorf("%w%w", errClose, err)
-			}
-		} else {
-			err = sess.Close()
-		}
-	}()
+func (c *DbSelf) Version() int64 {
+	return c.version
+}
 
-	return sess.Ping()
+func (c *DbSelf) Info() dbscan.DbInfo {
+	if c.dbInfo == nil {
+		return dbscan.DbInfo{}
+	}
+	return *c.dbInfo
+}
+
+func (c *DbSelf) InfoType() dbscan.DbInfoType {
+	return c.infoType
 }

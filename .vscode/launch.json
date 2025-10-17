@@ -8,6 +8,9 @@
       "mode": "exec",
       "program": "${workspaceFolder}/cmd/korrectkm.exe",
       "preLaunchTask": "build",
+      "args": [
+        "-local"
+      ],
       "cwd": "${workspaceFolder}/cmd"
     },
     {
@@ -18,7 +21,7 @@
       "program": "${workspaceFolder}/cmd/korrectkm.exe",
       "preLaunchTask": "build debug",
       "args": [
-         "-local",  
+         "-local"  
       ],
       "cwd": "${workspaceFolder}/cmd"
     },
@@ -29,6 +32,9 @@
       "mode": "exec",
       "program": "${workspaceFolder}/cmd/korrectkm.exe",
       "preLaunchTask": "build dev",
+      "args": [
+        "-local"
+      ],
       "cwd": "${workspaceFolder}/cmd"
     }
   ]

@@ -133,6 +133,7 @@ output/
 .dist/
 .data/
 .vscode/
+.korrectkm/
 
 # Go-specific binary blobs
 *.syso

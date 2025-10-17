@@ -3,25 +3,18 @@ package checkdbg
 import (
 	"fmt"
 
-	"korrectkm/config"
-
-	"go.uber.org/zap"
+	"korrectkm/domain"
 )
 
 const modError = "pkg:checkdbg"
 
-type ILogCfg interface {
-	Config() config.IConfig
-	Logger() *zap.SugaredLogger
-}
-
 type Checks struct {
-	ILogCfg
+	domain.Apper
 }
 
-func NewChecks(app ILogCfg) *Checks {
+func NewChecks(app domain.Apper) *Checks {
 	return &Checks{
-		ILogCfg: app,
+		Apper: app,
 	}
 }
 

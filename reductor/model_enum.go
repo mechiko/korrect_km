@@ -5,7 +5,7 @@ import "strings"
 // этот тип для ведения списка всех моделей
 // просто запоминать по строке сложно вычислить ошибки в программе
 // если строка вдруг окажется не такой как планировалось
-type ModelType int64
+type ModelType int
 
 const (
 	TrueClient ModelType = iota
@@ -35,8 +35,9 @@ func (s ModelType) String() string {
 		return "setup"
 	case Index:
 		return "index"
+	default:
+		return "неизвестная"
 	}
-	return "неизвестная"
 }
 
 // строка приводится в нижний регистр потом сравнивается

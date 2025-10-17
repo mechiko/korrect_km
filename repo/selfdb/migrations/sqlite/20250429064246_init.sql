@@ -19,7 +19,8 @@ CREATE TABLE sessions
     data   BLOB NOT NULL,
     expiry REAL NOT NULL
 );
-
+-- Index to speed up expiry-based look-ups / sweeps
+CREATE INDEX sessions_expiry_idx ON sessions(expiry);
 -- +goose Down
 -- +goose StatementBegin
 SELECT 'down SQL query';

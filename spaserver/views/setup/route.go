@@ -43,7 +43,7 @@ func (t *page) ConfigDB(c echo.Context) error {
 	useConfigDB := c.FormValue("useconfigdb")
 	model := t.PageModel()
 	if useConfigDB == "true" {
-		model.ReadConfigDB(t.Repo())
+		model.ReadConfigDB()
 	} else {
 		model.ClearConfigDB()
 		if store, err := mystore.List(t.Logger()); err != nil {

@@ -46,18 +46,11 @@ func (c *Config) GetByName(name string) interface{} {
 }
 
 // записываем ключ и его значение, затем обновляем структуру Config этими значениями
-func (c *Config) SetInConfig(key string, value interface{}, save ...bool) error {
+// в файл не сохраняем
+func (c *Config) SetInConfig(key string, value interface{}) error {
 	c.Set(key, value)
 	if err := c.Unmarshal(c.configuration); err != nil {
 		return fmt.Errorf("Viper.Unmarshal(c.Configuration) %w", err)
-	}
-	if len(save) > 0 {
-		saving := save[0]
-		if saving {
-			if err := c.Save(); err != nil {
-				return fmt.Errorf("%s %w", modError, err)
-			}
-		}
 	}
 	return nil
 }

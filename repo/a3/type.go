@@ -1,93 +1,63 @@
 package a3
 
 import (
-	"database/sql"
-	_ "embed"
 	"fmt"
-	"korrectkm/config"
-	"korrectkm/repo/dbs"
 
+	"github.com/mechiko/dbscan"
 	"github.com/upper/db/v4"
-	"github.com/upper/db/v4/adapter/mssql"
-	"github.com/upper/db/v4/adapter/sqlite"
-	"go.uber.org/zap"
 )
 
-type ILogCfg interface {
-	Config() config.IConfig
-	Logger() *zap.SugaredLogger
-}
-
-const modError = "repo:selfdb"
+const modError = "a3db"
 
 type DbA3 struct {
-	dbSession db.Session // database session handle
+	dbSession db.Session // открытый хэндл тут
+	dbInfo    *dbscan.DbInfo
+	infoType  dbscan.DbInfoType
+	version   int64
 }
 
-func New(logcfg ILogCfg, a *dbs.DbInfo) *DbA3 {
+func New(info *dbscan.DbInfo) (*DbA3, error) {
+	if info == nil {
+		return nil, fmt.Errorf("%s dbinfo is nil", modError)
+	}
 	db := &DbA3{
-		// ILogCfg: logcfg,
+		dbInfo:   info,
+		infoType: dbscan.A3,
 	}
-	if a.Host == "" {
-		a.Host = "localhost:1433"
+	// открываем сесиию в этом методе если нет ошибки
+	if err := db.Check(); err != nil {
+		return nil, fmt.Errorf("%s error check %w", modError, err)
 	}
-	switch a.Driver {
-	case "mssql":
-		uri := mssql.ConnectionURL{
-			User:     a.User,
-			Password: a.Pass,
-			Host:     a.Host,
-			Database: a.Name,
-			Options: map[string]string{
-				"encrypt": "disable",
-			},
-		}
-		dbSess, err := mssql.Open(uri)
-		if err != nil {
-			panic(fmt.Sprintf("%s %s", modError, err.Error()))
-		}
-		db.dbSession = dbSess
-		return db
-	case "sqlite":
-		uri := sqlite.ConnectionURL{
-			Database: a.File,
-			Options: map[string]string{
-				"mode": "rw",
-				// "_journal_mode": "WAL",
-			},
-		}
-		dbSess, err := sqlite.Open(uri)
-		if err != nil {
-			panic(fmt.Sprintf("%s %s", modError, err.Error()))
-		}
-		db.dbSession = dbSess
-		return db
+	if db.dbSession == nil {
+		return nil, fmt.Errorf("%s error after check dbsession nil", modError)
 	}
-	panic(fmt.Sprintf("%s не указан драйвер", modError))
+	return db, nil
 }
 
 func (c *DbA3) Close() (err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("panic %v", r)
-		}
-	}()
-	return c.dbSession.Close()
-}
-
-func (c *DbA3) DB() *sql.DB {
-	if db, ok := c.dbSession.Driver().(*sql.DB); ok {
-		return db
+	if c.dbSession == nil {
+		return nil
 	}
-	return nil
+	err = c.dbSession.Close()
+	c.dbSession = nil
+	return err
 }
 
 func (c *DbA3) Sess() db.Session {
 	return c.dbSession
 }
 
-// сделано отдельно чтобы закрывать бд
-func (c *DbA3) Ping() (err error) {
-	sess := c.dbSession
-	return sess.Ping()
+func (c *DbA3) Version() int64 {
+	return c.version
+}
+
+func (c *DbA3) Info() dbscan.DbInfo {
+	if c.dbInfo == nil {
+		return dbscan.DbInfo{}
+	}
+	return *c.dbInfo
+}
+
+func (c *DbA3) InfoType() dbscan.DbInfoType {
+	return c.infoType
 }

@@ -2,6 +2,7 @@ package trueclient
 
 import (
 	"fmt"
+	"korrectkm/domain"
 	"net/url"
 	"time"
 )
@@ -45,7 +46,7 @@ func (m *TrueClientModel) Sync(cfg ILogCfg) {
 }
 
 // когда считываем конфиг сбрасываем токены и время авторизации
-func (m *TrueClientModel) Read(cfg ILogCfg) (err error) {
+func (m *TrueClientModel) Read(app domain.Apper) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("%v", r)
@@ -56,25 +57,21 @@ func (m *TrueClientModel) Read(cfg ILogCfg) (err error) {
 	m.TokenSUZ = ""
 	// time.IsZero()
 	m.AuthTime = time.Time{}
-	if test, ok := cfg.Config().GetByName("trueclient.test").(bool); ok {
-		m.Test = test
-	}
-	if useConfigDB, ok := cfg.Config().GetByName("trueclient.useconfigdb").(bool); ok {
-		m.UseConfigDB = useConfigDB
-	}
-	m.DeviceID = cfg.Config().GetKeyString("trueclient.deviceid")
-	m.HashKey = cfg.Config().GetKeyString("trueclient.hashkey")
-	m.OmsID = cfg.Config().GetKeyString("trueclient.omsid")
+	m.Test = app.Options().TrueClient.Test
+	m.UseConfigDB = app.Options().TrueClient.UseConfigDB
+	m.DeviceID = app.Options().TrueClient.DeviceID
+	m.HashKey = app.Options().TrueClient.HashKey
+	m.OmsID = app.Options().TrueClient.OmsID
 	m.StandGIS = url.URL{
 		Scheme: "https",
-		Host:   cfg.Config().GetKeyString("trueclient.standgis"),
+		Host:   app.Options().TrueClient.StandGIS,
 	}
 	if m.StandGIS.Host == "" {
 		return fmt.Errorf("invalid or missing trueclient.standgis configuration")
 	}
 	m.StandSUZ = url.URL{
 		Scheme: "https",
-		Host:   cfg.Config().GetKeyString("trueclient.standsuz"),
+		Host:   app.Options().TrueClient.StandSUZ,
 	}
 	if m.StandSUZ.Host == "" {
 		return fmt.Errorf("invalid or missing trueclient.standsuz configuration")
@@ -82,11 +79,11 @@ func (m *TrueClientModel) Read(cfg ILogCfg) (err error) {
 	if m.Test {
 		m.StandGIS = url.URL{
 			Scheme: "https",
-			Host:   cfg.Config().GetKeyString("trueclient.testgis"),
+			Host:   app.Options().TrueClient.TestGIS,
 		}
 		m.StandSUZ = url.URL{
 			Scheme: "https",
-			Host:   cfg.Config().GetKeyString("trueclient.testsuz"),
+			Host:   app.Options().TrueClient.TestSUZ,
 		}
 	}
 

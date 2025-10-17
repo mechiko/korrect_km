@@ -1,82 +1,64 @@
 package configdb
 
 import (
-	"database/sql"
 	_ "embed"
 	"fmt"
-	"korrectkm/config"
-	"korrectkm/repo/dbs"
 
+	"github.com/mechiko/dbscan"
 	"github.com/upper/db/v4"
-	"github.com/upper/db/v4/adapter/mssql"
-	"github.com/upper/db/v4/adapter/sqlite"
-	"go.uber.org/zap"
 )
 
-type ILogCfg interface {
-	Config() config.IConfig
-	Logger() *zap.SugaredLogger
-}
+const modError = "configdb"
 
 type DbConfig struct {
-	ILogCfg
 	dbSession db.Session // открытый хэндл тут
+	dbInfo    *dbscan.DbInfo
+	infoType  dbscan.DbInfoType
+	version   int64
 }
 
-const modError = "repo:configdb"
-
-func New(logcfg ILogCfg, a *dbs.DbInfo) *DbConfig {
+func New(info *dbscan.DbInfo) (*DbConfig, error) {
+	if info == nil {
+		return nil, fmt.Errorf("%s dbinfo is nil", modError)
+	}
 	db := &DbConfig{
-		ILogCfg: logcfg,
+		dbInfo:   info,
+		infoType: dbscan.Config,
 	}
-	switch a.Driver {
-	case "mssql":
-		uri := mssql.ConnectionURL{
-			User:     "",
-			Password: "",
-			Host:     "localhost:1433",
-			Database: a.Name,
-			Options: map[string]string{
-				"encrypt": "disable",
-			},
-		}
-		dbSess, err := mssql.Open(uri)
-		if err != nil {
-			panic(fmt.Sprintf("mssql config.db %s", err.Error()))
-		}
-		db.dbSession = dbSess
-		return db
-	case "sqlite":
-		uri := sqlite.ConnectionURL{
-			Database: a.File,
-			Options: map[string]string{
-				"mode": "rw",
-				// "_journal_mode": "WAL",
-			},
-		}
-		dbSess, err := sqlite.Open(uri)
-		if err != nil {
-			panic(fmt.Sprintf("sqlite config.db %s", err.Error()))
-		}
-		db.dbSession = dbSess
-		return db
+	// открываем сесиию в этом методе если нет ошибки
+	if err := db.Check(); err != nil {
+		return nil, fmt.Errorf("%s check failed: %w", modError, err)
 	}
-	panic("config.db не указан драйвер")
+	if db.dbSession == nil {
+		return nil, fmt.Errorf("%s error after check dbsession nil", modError)
+	}
+	return db, nil
 }
 
-func (c *DbConfig) Close() (err error) {
-	return c.dbSession.Close()
-}
-
-func (c *DbConfig) DB() *sql.DB {
-	return c.dbSession.Driver().(*sql.DB)
+func (c *DbConfig) Close() error {
+	if c.dbSession == nil {
+		return nil
+	}
+	err := c.dbSession.Close()
+	c.dbSession = nil
+	return err
 }
 
 func (c *DbConfig) Sess() db.Session {
 	return c.dbSession
 }
 
-func (c *DbConfig) Ping() (err error) {
-	sess := c.dbSession
-	return sess.Ping()
+func (c *DbConfig) Version() int64 {
+	return c.version
+}
+
+func (c *DbConfig) Info() dbscan.DbInfo {
+	if c.dbInfo == nil {
+		return dbscan.DbInfo{}
+	}
+	return *c.dbInfo
+}
+
+func (c *DbConfig) InfoType() dbscan.DbInfoType {
+	return c.infoType
 }

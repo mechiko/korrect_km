@@ -18,11 +18,6 @@ timelayoutclear = '2006.01.02 15:04:05'
 timelayoutday = '2006.01.02'
 timelayoututc = '2006-01-02T15:04:05'
 
-[selfdb]
-dbname = 'korrectkm'
-driver = 'sqlite'
-file = '.korrectkm\korrectkm.db'
-
 [trueclient]
 deviceid = '5c4cfe79-1439-465a-b376-3339b36ced07'
 hashkey = 'c05850bd845b9dd6683f11635f50f73ef3a83130'

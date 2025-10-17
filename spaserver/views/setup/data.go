@@ -2,6 +2,7 @@ package setup
 
 import (
 	"fmt"
+	"korrectkm/domain"
 	"korrectkm/reductor"
 	"korrectkm/repo"
 	"korrectkm/trueclient"
@@ -75,12 +76,16 @@ func (m *SetupModel) Read(logger *zap.SugaredLogger) (err error) {
 	return nil
 }
 
-func (m *SetupModel) ReadConfigDB(r *repo.Repository) (err error) {
+func (m *SetupModel) ReadConfigDB() (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("%v", r)
 		}
 	}()
+	r, err := repo.GetRepository()
+	if err != nil {
+		return fmt.Errorf("setupModel repo error %w", err)
+	}
 	model, ok := reductor.Instance().Model(reductor.TrueClient).(trueclient.TrueClientModel)
 	if !ok {
 		return fmt.Errorf("setupModel read: модель не trueclient.TrueClientModel")
@@ -88,7 +93,7 @@ func (m *SetupModel) ReadConfigDB(r *repo.Repository) (err error) {
 	m.AuthTime = model.AuthTime
 	m.DeviceID = model.DeviceID
 	m.HashKey = model.HashKey
-	m.IsConfigDB = r.IsConfig()
+	m.IsConfigDB = model.IsConfigDB
 	m.UseConfigDB = true
 	m.LayoutUTC = model.LayoutUTC
 	m.MyStore = model.MyStore
@@ -100,11 +105,31 @@ func (m *SetupModel) ReadConfigDB(r *repo.Repository) (err error) {
 	m.TokenGIS = model.TokenGIS
 	m.TokenSUZ = model.TokenSUZ
 	if m.IsConfigDB {
-		m.OmsID = r.ConfigDB().Key("oms_id")
-		m.DeviceID = r.ConfigDB().Key("connection_id")
-		m.HashKey = r.ConfigDB().Key("certificate_thumbprint")
-		m.TokenSUZ = r.ConfigDB().Key("token_suz")
-		m.TokenGIS = r.ConfigDB().Key("token_gis_mt")
+		dbCfg, err := r.LockConfig()
+		if err != nil {
+			return fmt.Errorf("%w", err)
+		}
+		defer r.UnlockConfig(dbCfg)
+		m.OmsID, err = dbCfg.Key("oms_id")
+		if err != nil {
+			return fmt.Errorf("%w", err)
+		}
+		m.DeviceID, err = dbCfg.Key("connection_id")
+		if err != nil {
+			return fmt.Errorf("%w", err)
+		}
+		m.HashKey, err = dbCfg.Key("certificate_thumbprint")
+		if err != nil {
+			return fmt.Errorf("%w", err)
+		}
+		m.TokenSUZ, err = dbCfg.Key("token_suz")
+		if err != nil {
+			return fmt.Errorf("%w", err)
+		}
+		m.TokenGIS, err = dbCfg.Key("token_gis_mt")
+		if err != nil {
+			return fmt.Errorf("%w", err)
+		}
 	}
 	return nil
 }
@@ -115,7 +140,7 @@ func (m *SetupModel) ClearConfigDB() (err error) {
 			err = fmt.Errorf("%v", r)
 		}
 	}()
-	model, ok := reductor.Instance().Model(reductor.TrueClient).(trueclient.TrueClientModel)
+	model, ok := reductor.Instance().Model(domain.TrueClient).(trueclient.TrueClientModel)
 	if !ok {
 		return fmt.Errorf("setupModel read: модель не trueclient.TrueClientModel")
 	}
@@ -137,17 +162,22 @@ func (m *SetupModel) ClearConfigDB() (err error) {
 }
 
 func (t *page) PageData() interface{} {
-	if mdl, ok := reductor.Instance().Model(t.modelType).(SetupModel); ok {
-		// обновляем при запросе данных с моделью труклиент
-		mdl.Read(t.Logger())
-		return mdl
+	model, err := reductor.Instance().Model(domain.TrueClient)
+	if err != nil {
+		t.Logger().Errorf("setup: TrueClient error wrong %T", model)
+		return SetupModel{}
 	}
-	return reductor.Instance().Model(t.modelType)
+	return model
 }
 
 // с преобразованием
 func (t *page) PageModel() SetupModel {
-	if mdl, ok := reductor.Instance().Model(t.modelType).(SetupModel); ok {
+	model, err := reductor.Instance().Model(domain.TrueClient)
+	if err != nil {
+		t.Logger().Errorf("setup: TrueClient error wrong %T", model)
+		return SetupModel{}
+	}
+	if mdl, ok := model.(SetupModel); ok {
 		mdl.Read(t.Logger())
 		return mdl
 	}

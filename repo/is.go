@@ -1,13 +1,10 @@
 package repo
 
-func (r *Repository) IsA3() bool {
-	return r.dbs.A3().Exists
-}
+import "github.com/mechiko/dbscan"
 
-func (r *Repository) IsConfig() bool {
-	return r.dbs.ConfigInfo().Exists
-}
-
-func (r *Repository) IsZnak() bool {
-	return r.dbs.Znak().Exists
+func (r *Repository) Is(t dbscan.DbInfoType) bool {
+	if r == nil || r.dbs == nil {
+		return false
+	}
+	return r.dbs.Info(t) != nil
 }

@@ -2,69 +2,64 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io/fs"
+	"net/url"
+	"os"
+	"path/filepath"
 
 	"korrectkm/config"
-	"korrectkm/reductor"
-	"korrectkm/repo"
+	"korrectkm/domain"
 	"time"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
-type ILogCfg interface {
-	Config() config.IConfig
-	Logger() *zap.SugaredLogger
-}
-
 type app struct {
 	ctx       context.Context
 	uuid      string // идентификатор для уникальности формы
-	config    config.IConfig
-	logger    *zap.SugaredLogger
+	config    *config.Config
+	options   *config.Configuration // копия config.Configuration
+	loger     *zap.SugaredLogger
 	pwd       string
 	startTime time.Time
 	endTime   time.Time
-	repo      *repo.Repository
-	output    string
+	// repo          domain.Repo
+	output        string
+	dbSelfPath    string
+	defaultDbPath string
 }
 
-// var _ ILogCfg = &webapp{}
-var _ ILogCfg = (*app)(nil)
+var _ domain.Apper = (*app)(nil)
 
-const modError = "app"
-
-// func NewWebApp(logger *zap.SugaredLogger, e *echo.Echo, sse *sse.Server, pwd string) *webapp {
-func NewWebApp(cfg config.IConfig, logger *zap.SugaredLogger, pwd string) *app {
-	sc := &app{}
-	sc.pwd = pwd
-	sc.logger = logger
-	sc.config = cfg
-	sc.uuid = uuid.New().String()
-	logger.Info("start pages")
-	sc.initDateMn()
-	model := ApplicationModel{
-		Title:   "Application Title",
-		License: "",
-		FsrarID: "",
-	}
-	model.Read(sc)
-	reductor.Instance().SetModel(reductor.Application, model)
-	return sc
+func New(cfg *config.Config, logger *zap.SugaredLogger, pwd string) *app {
+	newApp := &app{}
+	newApp.pwd = pwd
+	newApp.loger = logger
+	newApp.config = cfg
+	newApp.options = cfg.Configuration()
+	newApp.uuid = uuid.New().String()
+	newApp.initDateMn()
+	return newApp
 }
 
 func (a *app) initDateMn() {
-	loc, _ := time.LoadLocation("Europe/Moscow")
+	loc, err := time.LoadLocation("Europe/Moscow")
+	if err != nil {
+		a.loger.Warnf("failed to load timezone, using UTC: %v", err)
+		loc = time.UTC
+	}
 	t := time.Now().In(loc)
-	_, m, _ := t.Date()
-	a.startTime = time.Date(t.Year(), m, 1, 1, 0, 0, 0, loc)
-	a.endTime = a.startTime.AddDate(0, 1, -1)
+	year, month, _ := t.Date()
+	a.startTime = time.Date(year, month, 1, 0, 0, 0, 0, loc)
+	a.endTime = time.Date(year, month+1, 1, 0, 0, 0, 0, loc).Add(-time.Nanosecond)
 }
 
 func (a *app) NowDateString() string {
-	n := time.Now()
-	return fmt.Sprintf("%4d.%02d.%02d %02d:%02d:%02d", n.Local().Year(), n.Local().Month(), n.Local().Day(), n.Local().Hour(), n.Local().Minute(), n.Local().Second())
+	n := time.Now().Local()
+	return fmt.Sprintf("%4d.%02d.%02d %02d:%02d:%02d", n.Year(), n.Month(), n.Day(), n.Hour(), n.Minute(), n.Second())
 }
 
 func (a *app) StartDateString() string {
@@ -91,38 +86,150 @@ func (a *app) EndDate() time.Time {
 	return a.endTime
 }
 
-func (a *app) SetRepo(repo *repo.Repository) {
-	a.repo = repo
-}
-
 func (a *app) FsrarID() string {
-	return a.Config().Configuration().Application.Fsrarid
+	return a.options.Application.Fsrarid
 }
 
 func (a *app) SetFsrarID(id string) {
-	a.Config().SetInConfig("application.fsrarid", id, true)
+	a.SetOptions("application.fsrarid", id)
+	a.SaveOptions()
 }
 
 func (a *app) Pwd() string {
 	return a.pwd
 }
 
-func (a *app) Repo() *repo.Repository {
-	return a.repo
-}
+// func (a *app) Repo() domain.Repo {
+// 	return a.repo
+// }
+
+// func (a *app) SetRepo(repo domain.Repo) error {
+// 	if a.repo != nil {
+// 		return fmt.Errorf("попытка установить новый репо при уже работающем")
+// 	}
+// 	a.repo = repo
+// 	return nil
+// }
 
 func (a *app) Output() string {
 	return a.output
 }
 
-func (a *app) Config() config.IConfig {
+func (a *app) Config() *config.Config {
 	return a.config
 }
 
 func (a *app) Logger() *zap.SugaredLogger {
-	return a.logger
+	return a.loger
 }
 
 func (a *app) Ctx() context.Context {
 	return a.ctx
+}
+
+// выдаем адрес структуры опций программы чтобы править по месту
+func (a *app) Options() *config.Configuration {
+	return a.options
+}
+
+// записываем ключ и его значение только в пакет config
+// и Options
+// изменения не записываются в файл конфигурации
+func (a *app) SetOptions(key string, value any) error {
+	a.config.SetInConfig(key, value)
+	a.options = a.config.Configuration()
+	return nil
+}
+
+// записываем файл конфигурации состояние конфигурации
+func (a *app) SaveOptions() error {
+	if err := a.config.Save(); err != nil {
+		return fmt.Errorf("save all in config error %w", err)
+	}
+	return nil
+}
+
+// создаем по необходимости пути программы
+func (a *app) CreatePath() error {
+	// создаем папку вывода если не пустое значение
+	// в папке запуска программы только или если она задана абсолютным значением пути
+	if a.options == nil {
+		return fmt.Errorf("опции программы не инициализированы")
+	}
+	if a.options.Output != "" {
+		if output, err := createPath(a.options.Output, ""); err != nil {
+			return fmt.Errorf("ошибка создания каталога %w", err)
+		} else {
+			a.options.Output = output
+		}
+		a.loger.Infof("путь output приложения %s", a.options.Output)
+	}
+	return nil
+}
+
+// создаем путь в каталоге программы или home
+func createPath(path string, home string) (string, error) {
+	fullPath := filepath.Join(home, path)
+	if filepath.IsAbs(path) {
+		fullPath = path
+	}
+	if err := pathCreate(fullPath); err != nil && !errors.Is(err, fs.ErrExist) {
+		return "", fmt.Errorf("cannot create path %s: %w", fullPath, err)
+	}
+	return filepath.Abs(fullPath)
+}
+
+func pathCreate(path string) error {
+	if path != "" {
+		// if err := os.MkdirAll(path, os.ModePerm); err != nil { // создает весь путь
+		if err := os.Mkdir(path, os.ModePerm); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (a *app) ConfigPath() string {
+	if a.config != nil {
+		return a.config.ConfigPath()
+	}
+	return ""
+}
+
+func (a *app) DefaultDbPath() string {
+	return a.defaultDbPath
+}
+
+func (a *app) SetDefaultDbPath(path string) {
+	a.defaultDbPath = path
+}
+
+func (a *app) LogPath() string {
+	if a.config != nil {
+		return a.config.LogPath()
+	}
+	return ""
+}
+
+func (a *app) BaseUrl() string {
+	host := a.options.Hostname
+	if host == "" {
+		host = "127.0.0.1"
+	}
+	port := a.options.HostPort
+	u := &url.URL{Scheme: "http"}
+	if port != "" {
+		u.Host = fmt.Sprintf("%s:%s", host, port)
+	} else {
+		u.Host = host
+	}
+	return u.String()
+}
+
+func (a *app) DbSelfPath() string {
+	return a.dbSelfPath
+}
+
+func (a *app) SetDbSelfPath(path string) {
+	a.dbSelfPath = path
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"korrectkm/config"
 	"korrectkm/reductor"
-	"korrectkm/repo"
 	"korrectkm/spaserver/templates"
 	"korrectkm/spaserver/views"
 	"korrectkm/sse"
@@ -34,7 +33,6 @@ const (
 type ILogCfg interface {
 	Config() config.IConfig
 	Logger() *zap.SugaredLogger
-	Repo() *repo.Repository
 	Ctx() context.Context
 }
 

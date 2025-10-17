@@ -2,8 +2,8 @@ package migrations
 
 import "embed"
 
-//go:embed sqlite/*.*
+//go:embed sqlite
 var Sqlite embed.FS
 
-//go:embed mssql/*.*
+//go:embed mssql
 var Mssql embed.FS
