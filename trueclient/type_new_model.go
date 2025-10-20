@@ -2,12 +2,14 @@ package trueclient
 
 import (
 	"fmt"
+	"korrectkm/domain"
+	"korrectkm/domain/models/modeltrueclient"
 	"net"
 	"net/http"
 )
 
 // если не используется конфиг.дб то всегда совершает авторизацию и пинг
-func NewFromModel(a ILogCfg, model TrueClientModel) (s *trueClient, err error) {
+func NewFromModel(a domain.Apper, model *modeltrueclient.TrueClientModel) (s *trueClient, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("panic recovered: %v", err)
@@ -25,7 +27,7 @@ func NewFromModel(a ILogCfg, model TrueClientModel) (s *trueClient, err error) {
 		Transport: netTransport,
 	}
 	s = &trueClient{
-		ILogCfg:    a,
+		Apper:      a,
 		httpClient: netClient,
 		layout:     model.LayoutUTC,
 		// logger:   zaplog.TrueSugar,
@@ -62,9 +64,9 @@ func NewFromModel(a ILogCfg, model TrueClientModel) (s *trueClient, err error) {
 			return s, fmt.Errorf("%s %s", modError, err.Error())
 		}
 		// сохраняем конфиг в объекте и редукторе
-		s.Save(&model)
+		s.Save(model)
 		// сохраняем конфиг после авторизации
-		model.Sync(s)
+		model.SyncToStore(a)
 	}
 	return s, nil
 }

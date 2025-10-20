@@ -1,7 +1,7 @@
 package views
 
 import (
-	"korrectkm/reductor"
+	"korrectkm/domain"
 
 	"github.com/labstack/echo/v4"
 )
@@ -19,7 +19,7 @@ type IView interface {
 	// заголовок страницы
 	Title() string
 	InitData() interface{}
-	ModelType() reductor.ModelType
+	ModelType() domain.Model
 	Svg() string
 	Desc() string
 }

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"korrectkm/reductor"
+	"korrectkm/domain"
 
 	"github.com/labstack/echo/v4"
 )
@@ -71,14 +71,17 @@ func (s *Server) renderToWriter(w io.Writer, name string, data interface{}) erro
 		return fmt.Errorf("template value must be a string")
 	}
 	model := dataMap["data"]
-	nameType := reductor.ModelTypeFromString(name)
+	nameType, err := domain.ModelFromString(name)
+	if err != nil {
+		return fmt.Errorf("view name wrong string must be Application, TrueClient, StatusBar, NoPage, Header, Footer, Index, Home, Setup")
+	}
 	view, ok := s.views[nameType]
 	if ok {
 		switch nameType {
-		case reductor.Home:
+		case domain.Home:
 			s.SetTitlePage(view.Title())
-		case reductor.Setup:
-			s.SetTitlePage(view.Title())
+			// case reductor.Setup:
+			// 	s.SetTitlePage(view.Title())
 		}
 	} else {
 		s.Logger().Errorf("нет такого вида %s", name)

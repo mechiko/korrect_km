@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"korrectkm/domain/models/modeltrueclient"
 	"net/http"
 	"net/url"
 )
@@ -41,7 +42,7 @@ func (t *trueClient) PingSuzSilent() bool {
 	buf, _ := io.ReadAll(resp.Body)
 	t.Logger().Debugf("ping Body:%s", buf)
 	// потоковый Unmarshal
-	pingJSON := PingSuzInfo{}
+	pingJSON := modeltrueclient.PingSuzInfo{}
 	if err := json.NewDecoder(bytes.NewBuffer(buf)).Decode(&pingJSON); err != nil {
 		return false
 	}
@@ -50,8 +51,8 @@ func (t *trueClient) PingSuzSilent() bool {
 }
 
 // https://suz.sandbox.crptech.ru/api/v3/ping?omsId=32539e31-c671-4462-8443-3d92b038b0f9
-func (t *trueClient) PingSuz() (info *PingSuzInfo, err error) {
-	info = &PingSuzInfo{}
+func (t *trueClient) PingSuz() (info *modeltrueclient.PingSuzInfo, err error) {
+	info = &modeltrueclient.PingSuzInfo{}
 	var v = make(url.Values)
 	v.Set("omsId", t.omsID)
 	var u = url.URL{

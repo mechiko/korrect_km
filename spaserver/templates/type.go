@@ -4,38 +4,54 @@ import (
 	"html/template"
 	"io"
 	"io/fs"
-	"korrectkm/config"
-	"korrectkm/reductor"
+	"korrectkm/domain"
+	"path/filepath"
 
 	"github.com/alexedwards/scs/v2"
-	"go.uber.org/zap"
+	"github.com/mechiko/utility"
 )
 
 const modError = "http:templates"
 
 const defaultTemplate = "index"
 
+// если каталог ../spaserver/templates существует, то прописываем его в переменную
+// для поиска шаблонов динамической обработки для отладки
+// вычисляется абсолютный путь относительно каталога запуска в cmd под отладкой, потому ..
+var pathTemplates = "../spaserver/templates"
+
+func rootPathTemplates() (out string) {
+	defer func() {
+		if r := recover(); r != nil {
+			out = ""
+		}
+	}()
+	out, err := filepath.Abs(pathTemplates)
+	if err != nil {
+		return ""
+	}
+	if utility.PathOrFileExists(out) {
+		return out
+	}
+	return ""
+}
+
 type IApp interface {
-	Config() config.IConfig
-	Logger() *zap.SugaredLogger
+	domain.Apper
 	SessionManager() *scs.SessionManager
 	SetTitlePage(string)
-	// DefaultPage() string
-	// DefaultTemplate() string
-	// ActivePage() string
-	// ActiveTemplate() string
 }
 
 type ITemplateUI interface {
 	LoadTemplates() (err error)
-	Render(w io.Writer, page reductor.ModelType, name string, data interface{}) error
-	RenderDebug(w io.Writer, page reductor.ModelType, name string, data interface{}) error
+	Render(w io.Writer, page domain.Model, name string, data interface{}) error
+	RenderDebug(w io.Writer, page domain.Model, name string, data interface{}) error
 }
 
 type Templates struct {
 	IApp
 	debug                    bool
-	pages                    map[reductor.ModelType]*template.Template
+	pages                    map[domain.Model]*template.Template
 	fs                       fs.FS
 	rootPathTemplateGinDebug string
 	semaphore                Semaphore
@@ -44,12 +60,12 @@ type Templates struct {
 var _ ITemplateUI = &Templates{}
 
 // panic if error
-func New(app IApp, root string, debug bool) *Templates {
+func New(app IApp, debug bool) *Templates {
 	t := &Templates{
 		IApp:                     app,
 		pages:                    nil,
 		debug:                    debug,
-		rootPathTemplateGinDebug: root,
+		rootPathTemplateGinDebug: rootPathTemplates(),
 		semaphore:                NewSemaphore(1),
 	}
 	if err := t.LoadTemplates(); err != nil {

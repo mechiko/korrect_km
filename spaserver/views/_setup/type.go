@@ -1,25 +1,18 @@
 package setup
 
 import (
-	"korrectkm/config"
+	"korrectkm/domain"
 	"korrectkm/reductor"
 	"strings"
 
 	"github.com/donseba/go-htmx"
 	"github.com/labstack/echo/v4"
-	"go.uber.org/zap"
 )
 
 // const modError = "home"
 
-type ILogCfg interface {
-	Config() config.IConfig
-	Logger() *zap.SugaredLogger
-}
-
 type IServer interface {
-	Config() config.IConfig
-	Logger() *zap.SugaredLogger
+	domain.Apper
 	Echo() *echo.Echo
 	ServerError(c echo.Context, err error) error
 	SetActivePage(reductor.ModelType)

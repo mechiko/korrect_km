@@ -1,26 +1,23 @@
 package footer
 
 import (
-	"korrectkm/config"
-	"korrectkm/reductor"
+	"korrectkm/domain"
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	"go.uber.org/zap"
 )
 
 const modError = "footer"
 
 type IApp interface {
-	Config() config.IConfig
-	Logger() *zap.SugaredLogger
+	domain.Apper
 	Echo() *echo.Echo
 	ServerError(c echo.Context, err error) error
 }
 
 type page struct {
 	IApp
-	modelType       reductor.ModelType
+	modelType       domain.Model
 	defaultTemplate string
 	currentTemplate string
 	title           string
@@ -29,7 +26,7 @@ type page struct {
 func New(app IApp) *page {
 	t := &page{
 		IApp:            app,
-		modelType:       reductor.Footer,
+		modelType:       domain.Footer,
 		defaultTemplate: "content",
 		currentTemplate: "content",
 	}
@@ -48,7 +45,7 @@ func (p *page) Name() string {
 	return strings.ToLower(p.modelType.String())
 }
 
-func (p *page) ModelType() reductor.ModelType {
+func (p *page) ModelType() domain.Model {
 	return p.modelType
 }
 

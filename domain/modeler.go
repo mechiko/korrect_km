@@ -14,21 +14,20 @@ type Modeler interface {
 type Model string
 
 const (
-	Application  Model = "application"
-	TrueClient   Model = "trueclient"
-	StatusBar    Model = "statusbar"
-	ZnakAgregate Model = "znakagregate"
-	ZnakTool     Model = "znaktool"
-	NoPage       Model = "nopage"
-	Header       Model = "header"
-	Footer       Model = "footer"
-	ProdTools    Model = "prodtools"
-	Index        Model = "index"
+	Application Model = "application"
+	TrueClient  Model = "trueclient"
+	StatusBar   Model = "statusbar"
+	NoPage      Model = "nopage"
+	Header      Model = "header"
+	Home        Model = "home"
+	Footer      Model = "footer"
+	Index       Model = "index"
+	Setup       Model = "setup"
 )
 
 func IsValidModel(s string) bool {
 	switch Model(s) {
-	case Application, TrueClient, StatusBar, ZnakAgregate, NoPage, Header, Footer, ProdTools, Index, ZnakTool:
+	case Application, TrueClient, StatusBar, NoPage, Header, Footer, Index, Home, Setup:
 		return true
 	default:
 		return false
@@ -45,20 +44,18 @@ func ModelFromString(s string) (Model, error) {
 		return TrueClient, nil
 	case string(StatusBar):
 		return StatusBar, nil
-	case string(ZnakAgregate):
-		return ZnakAgregate, nil
-	case string(ZnakTool):
-		return ZnakTool, nil
 	case string(NoPage):
 		return NoPage, nil
 	case string(Header):
 		return Header, nil
 	case string(Footer):
 		return Footer, nil
-	case string(ProdTools):
-		return ProdTools, nil
+	case string(Home):
+		return Home, nil
 	case string(Index):
 		return Index, nil
+	case string(Setup):
+		return Setup, nil
 	}
 	return "", fmt.Errorf("%s ошибочная модель domain.Model", s)
 }

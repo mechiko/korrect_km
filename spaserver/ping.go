@@ -2,18 +2,24 @@ package spaserver
 
 import (
 	"fmt"
+	"korrectkm/domain"
+	"korrectkm/domain/models/modeltrueclient"
 	"korrectkm/reductor"
 	"korrectkm/trueclient"
 )
 
 // при запуске программы первый пинг блокирующий для проверки
 func (s *Server) PingSetup() error {
-	model, ok := reductor.Instance().Model(reductor.TrueClient).(trueclient.TrueClientModel)
+	mdl, err := reductor.Instance().Model(domain.TrueClient)
+	if err != nil {
+		return fmt.Errorf("failed to create trueclient: %w", err)
+	}
+	model, ok := mdl.(modeltrueclient.TrueClientModel)
 	if !ok {
 		return fmt.Errorf("объект редуктора не соответствует trueclient.TrueClientModel")
 	}
 
-	tcl, err := trueclient.NewFromModelSingle(s, model)
+	tcl, err := trueclient.NewFromModelSingle(s, &model)
 	if err != nil {
 		return fmt.Errorf("failed to create trueclient: %w", err)
 	}
@@ -24,6 +30,6 @@ func (s *Server) PingSetup() error {
 	}
 
 	model.PingSuz = png
-	reductor.Instance().SetModel(reductor.TrueClient, model)
+	reductor.Instance().SetModel(&model, false)
 	return nil
 }

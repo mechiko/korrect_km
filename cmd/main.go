@@ -8,12 +8,12 @@ import (
 	"korrectkm/app"
 	"korrectkm/checkdbg"
 	"korrectkm/config"
+	"korrectkm/domain"
+	"korrectkm/domain/models/modeltrueclient"
 	"korrectkm/embedded"
 	"korrectkm/reductor"
 	"korrectkm/repo"
 	"korrectkm/spaserver"
-	"korrectkm/trueclient"
-	"korrectkm/trueclient/mystore"
 	"korrectkm/zaplog"
 	"os"
 	"path/filepath"
@@ -130,53 +130,20 @@ func main() {
 	}
 
 	// создаем редуктор с новой моделью
-	modelTcl := trueclient.TrueClientModel{}
+	modelTcl := modeltrueclient.TrueClientModel{}
 	// читаем модель из файла toml
-	modelTcl.Read(app)
-	// выставляем присутствие базы конфиг.дб
-	modelTcl.IsConfigDB = repoStart.Is(dbscan.Config)
-	// если настройка использовать авторизацию алкохелпа то загружаем данные из config.db
-	if modelTcl.UseConfigDB {
-		if repoStart.Is(dbscan.Config) {
-			dbCfg, err := repoStart.LockConfig()
-			if err != nil {
-				utility.MessageBox("Ошибка получения конфигурации config.db", err.Error())
-				os.Exit(-1)
-			}
-			defer repoStart.UnlockConfig(dbCfg)
-			modelTcl.OmsID, err = dbCfg.Key("oms_id")
-			if err != nil {
-				utility.MessageBox("Ошибка получения конфигурации config.db", err.Error())
-				os.Exit(-1)
-			}
-			modelTcl.DeviceID, err = dbCfg.Key("connection_id")
-			if err != nil {
-				utility.MessageBox("Ошибка получения конфигурации config.db", err.Error())
-				os.Exit(-1)
-			}
-			modelTcl.HashKey, err = dbCfg.Key("certificate_thumbprint")
-			if err != nil {
-				utility.MessageBox("Ошибка получения конфигурации config.db", err.Error())
-				os.Exit(-1)
-			}
-			modelTcl.TokenSUZ, err = dbCfg.Key("token_suz")
-			if err != nil {
-				utility.MessageBox("Ошибка получения конфигурации config.db", err.Error())
-				os.Exit(-1)
-			}
-			modelTcl.TokenGIS, err = dbCfg.Key("token_gis_mt")
-			if err != nil {
-				utility.MessageBox("Ошибка получения конфигурации config.db", err.Error())
-				os.Exit(-1)
-			}
-		}
+	err = modelTcl.ReadState(app)
+	if err != nil {
+		utility.MessageBox("Ошибка чтения данных модели ЧЗ", err.Error())
+		os.Exit(-1)
 	}
 	// загружаем сертификаты пользователя
-	if modelTcl.MyStore, err = mystore.List(loger); err != nil {
+	err = modelTcl.LoadStore(app)
+	if err != nil {
 		loger.Errorf("%s", err.Error())
 	}
 
-	reductor.Instance().SetModel(modelTcl, false)
+	reductor.Instance().SetModel(&modelTcl, false)
 
 	group.Go(func() error {
 		go func() {
@@ -186,7 +153,7 @@ func main() {
 		return repoStart.Run(groupCtx)
 	})
 	// тесты
-	if err := checkdbg.NewChecks(webApp).Run(); err != nil {
+	if err := checkdbg.NewChecks(app).Run(); err != nil {
 		loger.Errorf("check error %v", err)
 		cancel()
 	}
@@ -198,13 +165,18 @@ func main() {
 		if portFree, err := utility.GetFreePort(); err == nil {
 			port = fmt.Sprintf("%d", portFree)
 			// порт не записываем в файл конфигурации остается только в модели приложения
-			webApp.Config().SetInConfig("hostport", port, false)
+			app.SetOptions("hostport", port)
 		}
 	}
 	loger.Infof("http port %s", port)
 
+	echoLogger, err := zl.GetLogger("echo")
+	if err != nil {
+		errProcessExit("Ошибка получения логера для http", err)
+	}
+
 	// тут инициализируются так же модели для всех видов
-	httpServer := spaserver.New(webApp, port, true)
+	httpServer := spaserver.New(app, echoLogger, port, true)
 	// запускаем сервер эхо через него SSE работает для флэш сообщений
 	httpServer.Start()
 	// для отладки посмотреть редуктор после инициализации
@@ -213,7 +185,7 @@ func main() {
 
 	if err := httpServer.PingSetup(); err != nil {
 		httpServer.SetFlush(err.Error(), "error")
-		httpServer.SetActivePage(reductor.Setup)
+		httpServer.SetActivePage(domain.Home)
 		loger.Errorf("%s", err.Error())
 	}
 	if err := wails.Run(&options.App{
@@ -249,10 +221,10 @@ func main() {
 		EnableDefaultContextMenu: true,
 		Logger:                   nil,
 		LogLevel:                 logger.INFO,
-		OnStartup:                webApp.Startup,
+		OnStartup:                app.Startup,
 		// OnDomReady:               httpServer.Publish,
-		OnBeforeClose:    webApp.BeforeClose,
-		OnShutdown:       webApp.Shutdown,
+		OnBeforeClose:    app.BeforeClose,
+		OnShutdown:       app.Shutdown,
 		WindowStartState: options.Normal,
 		// Windows platform specific options
 		Windows: &windows.Options{
@@ -276,5 +248,5 @@ func main() {
 	} else {
 		fmt.Println("game over!")
 	}
-	zaplog.OnShutdown()
+	zl.Shutdown()
 }

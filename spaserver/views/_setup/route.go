@@ -27,7 +27,7 @@ func (t *page) Index(c echo.Context) error {
 	model := t.PageModel()
 	// синхронизируем с моделью TrueClientModel
 	model.Read(t.Logger())
-	reductor.Instance().SetModel(reductor.Setup, model)
+	reductor.Instance().SetModel(&model, false)
 	if err := c.Render(http.StatusOK, t.Name(), t.RenderPageModel("index", t.PageData())); err != nil {
 		return t.ServerError(c, err)
 	}
@@ -56,7 +56,7 @@ func (t *page) ConfigDB(c echo.Context) error {
 	}
 	model.PingSuz = nil
 	model.Sync(t)
-	reductor.Instance().SetModel(reductor.Setup, model)
+	reductor.Instance().SetModel(&model, false)
 
 	if err := c.Render(http.StatusOK, t.Name(), t.RenderPageModel("page", model)); err != nil {
 		return t.ServerError(c, err)
@@ -104,11 +104,11 @@ func (t *page) Ping(c echo.Context) error {
 			// пинг успешен
 			tclModel.PingSuz = png
 			model.PingSuz = png
-			reductor.Instance().SetModel(reductor.TrueClient, tclModel)
+			reductor.Instance().SetModel(tclModel, false)
 		}
 	}
 
-	reductor.Instance().SetModel(reductor.Setup, model)
+	reductor.Instance().SetModel(&model, false)
 	if err := c.Render(http.StatusOK, t.Name(), t.RenderPageModel("index", model)); err != nil {
 		return t.ServerError(c, err)
 	}

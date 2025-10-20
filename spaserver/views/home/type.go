@@ -1,28 +1,20 @@
 package home
 
 import (
-	"korrectkm/config"
-	"korrectkm/reductor"
+	"korrectkm/domain"
 	"strings"
 
 	"github.com/donseba/go-htmx"
 	"github.com/labstack/echo/v4"
-	"go.uber.org/zap"
 )
 
 // const modError = "home"
 
-type ILogCfg interface {
-	Config() config.IConfig
-	Logger() *zap.SugaredLogger
-}
-
 type IServer interface {
-	Config() config.IConfig
-	Logger() *zap.SugaredLogger
+	domain.Apper
 	Echo() *echo.Echo
 	ServerError(c echo.Context, err error) error
-	SetActivePage(reductor.ModelType)
+	SetActivePage(domain.Model)
 	SetFlush(string, string)
 	RenderString(name string, data interface{}) (str string, err error)
 	Htmx() *htmx.HTMX
@@ -30,7 +22,7 @@ type IServer interface {
 
 type page struct {
 	IServer
-	modelType reductor.ModelType
+	modelType domain.Model
 	// name            string
 	defaultTemplate string
 	currentTemplate string
@@ -40,7 +32,7 @@ type page struct {
 func New(app IServer) *page {
 	t := &page{
 		IServer:         app,
-		modelType:       reductor.Home,
+		modelType:       domain.Home,
 		defaultTemplate: "index",
 		currentTemplate: "index",
 		title:           "домашняя страница",
@@ -63,7 +55,7 @@ func (p *page) Name() string {
 	return strings.ToLower(p.modelType.String())
 }
 
-func (p *page) ModelType() reductor.ModelType {
+func (p *page) ModelType() domain.Model {
 	return p.modelType
 }
 

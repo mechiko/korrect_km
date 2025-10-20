@@ -1,6 +1,7 @@
 package trueclient
 
 import (
+	"korrectkm/domain/models/modeltrueclient"
 	"time"
 )
 
@@ -24,6 +25,6 @@ func (t *trueClient) AddError(err error) {
 	t.errors = append(t.errors, err.Error())
 }
 
-func (t *trueClient) PingSuzInfo() *PingSuzInfo {
+func (t *trueClient) PingSuzInfo() *modeltrueclient.PingSuzInfo {
 	return t.pingSUZ
 }

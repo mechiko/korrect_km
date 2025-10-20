@@ -1,26 +1,20 @@
 package trueclient
 
 import (
-	"korrectkm/config"
+	"korrectkm/domain"
+	"korrectkm/domain/models/modeltrueclient"
 	"net/http"
 	"net/url"
 	"time"
-
-	"go.uber.org/zap"
 )
 
 // флаг запрещающий создание объекта изначально 0
 var reentranceFlag int64
 
-type ILogCfg interface {
-	Config() config.IConfig
-	Logger() *zap.SugaredLogger
-}
-
 const modError = "trueclient"
 
 type trueClient struct {
-	ILogCfg
+	domain.Apper
 	urlSUZ url.URL
 	urlGIS url.URL
 	layout string
@@ -33,5 +27,5 @@ type trueClient struct {
 	httpClient *http.Client
 	authTime   time.Time
 	errors     []string
-	pingSUZ    *PingSuzInfo
+	pingSUZ    *modeltrueclient.PingSuzInfo
 }

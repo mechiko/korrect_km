@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"korrectkm/config"
 
 	"go.uber.org/zap"
@@ -16,4 +17,5 @@ type Apper interface {
 	LogPath() string
 	Pwd() string
 	BaseUrl() string
+	Ctx() context.Context
 }

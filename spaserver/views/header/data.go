@@ -1,23 +1,9 @@
 package header
 
 import (
+	"korrectkm/domain"
 	"korrectkm/reductor"
 )
-
-type MenuModel struct {
-	Title string
-	Items MenuItemSlice
-}
-
-type MenuItem struct {
-	Name   string
-	Title  string
-	Active bool
-	Desc   string
-	Svg    string
-}
-
-type MenuItemSlice []*MenuItem
 
 func (t *page) InitData() interface{} {
 	model := MenuModel{
@@ -40,17 +26,19 @@ func (t *page) InitData() interface{} {
 		}
 		model.Items = append(model.Items, menuItem)
 	}
-	reductor.Instance().SetModel(t.modelType, model)
+	reductor.Instance().SetModel(&model, false)
 	return model
 }
 
 func (t *page) PageData() interface{} {
-	return reductor.Instance().Model(t.modelType)
+	mdl, _ := reductor.Instance().Model(domain.Header)
+	return mdl
 }
 
 // с преобразованием
 func (t *page) PageModel() MenuModel {
-	if mdl, ok := reductor.Instance().Model(t.modelType).(MenuModel); ok {
+	model, _ := reductor.Instance().Model(domain.Header)
+	if mdl, ok := model.(MenuModel); ok {
 		return mdl
 	}
 	return MenuModel{}

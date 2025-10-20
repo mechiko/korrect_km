@@ -2,8 +2,8 @@ package statusbar
 
 import (
 	"fmt"
-	"zupper/domain"
-	"zupper/repo"
+	"korrectkm/domain"
+	"korrectkm/repo"
 )
 
 type StatusBar struct {

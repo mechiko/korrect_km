@@ -3,13 +3,13 @@ package templates
 import (
 	"fmt"
 	"io"
-	"korrectkm/reductor"
+	"korrectkm/domain"
 )
 
 // page имя страницы из массива структур шаблонов по имени каталога view
 // name имя шаблона для вида страницы из имени файла в каталоге view без расширения
 // Render processes and renders an HTML template with the passed data and HTTP status code to the response writer.
-func (t *Templates) Render(w io.Writer, pageType reductor.ModelType, name string, data interface{}) (err error) {
+func (t *Templates) Render(w io.Writer, pageType domain.Model, name string, data interface{}) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("panic %v", r)
@@ -27,7 +27,7 @@ func (t *Templates) Render(w io.Writer, pageType reductor.ModelType, name string
 	return tmpl.ExecuteTemplate(w, name, data)
 }
 
-func (t *Templates) RenderDebug(w io.Writer, pageType reductor.ModelType, name string, data interface{}) (err error) {
+func (t *Templates) RenderDebug(w io.Writer, pageType domain.Model, name string, data interface{}) (err error) {
 	t.semaphore.Acquire()
 	defer t.semaphore.Release()
 	defer func() {

@@ -42,6 +42,7 @@ func New(cfg *config.Config, logger *zap.SugaredLogger, pwd string) *app {
 	newApp.options = cfg.Configuration()
 	newApp.uuid = uuid.New().String()
 	newApp.initDateMn()
+	newApp.ctx = context.Background()
 	return newApp
 }
 

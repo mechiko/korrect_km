@@ -2,10 +2,10 @@ package application
 
 import (
 	"fmt"
+	"korrectkm/config"
+	"korrectkm/domain"
+	"korrectkm/repo"
 	"time"
-	"zupper/config"
-	"zupper/domain"
-	"zupper/repo"
 
 	"github.com/mechiko/dbscan"
 	"github.com/mechiko/utility"
@@ -126,9 +126,6 @@ func (m *Application) ReadState(app domain.Apper, rp *repo.Repository) (err erro
 			m.FsrarID = fsrarId
 		}
 	}
-	// m.FsrarID = app.Options().Application.Fsrarid
-
-	m.InitDateMn()
 	return nil
 }
 

@@ -2,6 +2,8 @@ package trueclient
 
 import (
 	"fmt"
+	"korrectkm/domain"
+	"korrectkm/domain/models/modeltrueclient"
 	"net"
 	"net/http"
 	"sync/atomic"
@@ -9,7 +11,7 @@ import (
 
 // если не используется конфиг.дб то всегда совершает авторизацию
 // блокирует реентерабельность до выполнения ClearSingle()
-func NewFromModelSingle(a ILogCfg, model TrueClientModel) (s *trueClient, err error) {
+func NewFromModelSingle(a domain.Apper, model *modeltrueclient.TrueClientModel) (s *trueClient, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("%w", err)
@@ -38,7 +40,7 @@ func NewFromModelSingle(a ILogCfg, model TrueClientModel) (s *trueClient, err er
 		Transport: netTransport,
 	}
 	s = &trueClient{
-		ILogCfg:    a,
+		Apper:      a,
 		httpClient: netClient,
 		layout:     model.LayoutUTC,
 		urlSUZ:     model.StandSUZ,
@@ -72,9 +74,9 @@ func NewFromModelSingle(a ILogCfg, model TrueClientModel) (s *trueClient, err er
 			return s, fmt.Errorf("%s %s", modError, err.Error())
 		}
 		// сохраняем конфиг в объекте и редукторе
-		s.Save(&model)
+		s.Save(model)
 		// сохраняем конфиг после авторизации
-		model.Sync(s)
+		model.SyncToStore(a)
 	}
 	return s, nil
 }

@@ -2,7 +2,7 @@ package header
 
 import (
 	"fmt"
-	"korrectkm/reductor"
+	"korrectkm/domain"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -42,7 +42,11 @@ func (t *page) pager(c echo.Context) error {
 	if page == "" {
 		return t.ServerError(c, fmt.Errorf("pager page empty"))
 	}
-	t.SetActivePage(reductor.ModelTypeFromString(page))
+	tm, err := domain.ModelFromString(page)
+	if err != nil {
+		return t.ServerError(c, err)
+	}
+	t.SetActivePage(tm)
 	t.Reload()
 	return nil
 }

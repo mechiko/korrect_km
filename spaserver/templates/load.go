@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"korrectkm/reductor"
+	"korrectkm/domain"
 	"path"
 	"strings"
 )
@@ -16,7 +16,7 @@ import (
 // все пути и включения отображаются из embeded структуры файлов, по ним строится t.pages[page]
 // состоящая из дерева шаблонов для каждой страницы (независимых)
 func (t *Templates) LoadTemplates() (err error) {
-	t.pages = make(map[reductor.ModelType]*template.Template)
+	t.pages = make(map[domain.Model]*template.Template)
 	t.fs = root
 	embededPages, err := root.ReadDir(".")
 	if err != nil {
@@ -25,7 +25,10 @@ func (t *Templates) LoadTemplates() (err error) {
 	for _, page := range embededPages {
 		// t.Logger().Debugf("page %d %s %v", i, page.Name(), page.IsDir())
 		if page.IsDir() {
-			name := reductor.ModelTypeFromString(page.Name())
+			name, err := domain.ModelFromString(page.Name())
+			if err != nil {
+				return fmt.Errorf("%s %w", modError, err)
+			}
 			if err := t.parsePage(name); err != nil {
 				return fmt.Errorf("%s %w", modError, err)
 			}
@@ -34,7 +37,7 @@ func (t *Templates) LoadTemplates() (err error) {
 	return nil
 }
 
-func (t *Templates) parsePage(page reductor.ModelType) (err error) {
+func (t *Templates) parsePage(page domain.Model) (err error) {
 	// создаем новый шаблон страницы
 	// при кэшировании мап не переписывается
 	if _, ok := t.pages[page]; ok {
@@ -56,7 +59,7 @@ func (t *Templates) parsePage(page reductor.ModelType) (err error) {
 	return nil
 }
 
-func (t *Templates) parsePageHtml(page reductor.ModelType, html string, templ *template.Template) (err error) {
+func (t *Templates) parsePageHtml(page domain.Model, html string, templ *template.Template) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("panic %v", r)

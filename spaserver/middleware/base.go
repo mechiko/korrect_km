@@ -2,15 +2,12 @@ package middleware
 
 import (
 	"fmt"
-	"korrectkm/config"
+	"korrectkm/domain"
 	"net/http"
-
-	"go.uber.org/zap"
 )
 
 type IApp interface {
-	Config() config.IConfig
-	Logger() *zap.SugaredLogger
+	domain.Apper
 	ServerError(w http.ResponseWriter, r *http.Request, err error)
 }
 
