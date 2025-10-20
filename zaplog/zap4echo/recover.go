@@ -46,6 +46,9 @@ func Recover(log *zap.Logger) echo.MiddlewareFunc {
 }
 
 func RecoverWithConfig(log *zap.Logger, config RecoverConfig) echo.MiddlewareFunc {
+	if log == nil {
+		log = zap.NewNop()
+	}
 	if config.StackTrace {
 		// Disable printing of stacktrace. We will manually print it.
 		log = log.WithOptions(zap.AddStacktrace(zap.FatalLevel + 1))

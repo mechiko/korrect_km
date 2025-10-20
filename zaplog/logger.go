@@ -32,32 +32,40 @@ func (z *ZapLog) Shutdown() {
 	}
 }
 
-func New(outConfig map[string][]string, debug bool) (*ZapLog, error) {
+//	var logsOutConfig = map[string]zaplog.LogConfig{
+//		"logger": {
+//			ErrorOutputPaths: []string{"stdout", filepath.Join(cfg.LogPath(), config.Name)},
+//			Debug:            debug,
+//			Console:          true,
+//		},
+//		"echo": {
+//			ErrorOutputPaths: []string{"stdout", filepath.Join(cfg.LogPath(), "echo")},
+//			Debug:            debug,
+//			Console:          false,
+//		},
+//		"reductor": {
+//			ErrorOutputPaths: []string{"stdout", filepath.Join(cfg.LogPath(), "reductor")},
+//			Debug:            debug,
+//			Console:          true,
+//		},
+//	}
+func New(outConfig map[string]LogConfig) (*ZapLog, error) {
 	// проверяем мапу настройки логов
-	for key, val := range outConfig {
+	for key := range outConfig {
 		if !isValidLogName(key) {
 			return nil, fmt.Errorf("wrong name %s", key)
-		}
-		if len(val) < 1 {
-			return nil, fmt.Errorf("string array must be min lenght 1 elements")
 		}
 	}
 	z := &ZapLog{
 		logs: make(map[LogName]*zap.Logger),
 	}
-	err := z.init(outConfig, debug)
+	err := z.init(outConfig)
 	if err != nil {
 		return nil, fmt.Errorf("init zap logger %v", err)
 	}
 	return z, nil
 }
 
-//	var outConfig = map[string][]string{
-//		"logger":   []string{"stdout"},
-//		"echo":     []string{"stdout", "echo_name"},
-//		"reductor": []string{"stderr"},
-//		"true":     []string{"stdout", "true_name"},
-//	}
 func (z *ZapLog) Run(ctx context.Context) error {
 	// ожидаем завершения контекста
 	<-ctx.Done()
@@ -66,10 +74,10 @@ func (z *ZapLog) Run(ctx context.Context) error {
 	return nil
 }
 
-func (z *ZapLog) init(outConfig map[string][]string, debug bool) (err error) {
+func (z *ZapLog) init(outConfig map[string]LogConfig) (err error) {
 	for key, output := range outConfig {
 		if isValidLogName(key) {
-			lg, err := createLogger(output, debug)
+			lg, err := createLogger(output.ErrorOutputPaths, output.Debug, output.Console)
 			if err != nil {
 				return fmt.Errorf("name %s %w", key, err)
 			}

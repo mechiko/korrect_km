@@ -14,6 +14,13 @@ const (
 	LogNameTrue     LogName = "true"
 )
 
+type LogConfig struct {
+	ErrorOutputPaths []string
+	Debug            bool
+	Console          bool // true - "console" false - "json"
+	Name             string
+}
+
 func isValidLogName(s string) bool {
 	switch LogName(s) {
 	case LogNameLogger, LogNameEcho, LogNameReductor, LogNameTrue:
@@ -37,11 +44,17 @@ var encoderConfig = zapcore.EncoderConfig{
 	EncodeCaller:   zapcore.ShortCallerEncoder,
 }
 
-func createLogger(output []string, debug bool) (*zap.Logger, error) {
+// createLogger creates a zap logger with specified output paths and debug level.
+// console determines the encoding format: true for console, false for JSON.
+func createLogger(output []string, debug bool, console bool) (*zap.Logger, error) {
 	level := zap.InfoLevel
 	if debug {
 		level = zap.DebugLevel
 	}
+	if len(output) == 0 {
+		output = []string{"stderr"}
+	}
+
 	config := zap.Config{
 		Level:             zap.NewAtomicLevelAt(level),
 		Development:       debug,
@@ -52,6 +65,13 @@ func createLogger(output []string, debug bool) (*zap.Logger, error) {
 		EncoderConfig:     encoderConfig,
 		OutputPaths:       output,
 		ErrorOutputPaths:  []string{"stderr"},
+	}
+	if !console {
+		config.Encoding = "json"
+	}
+
+	if !debug {
+		config.Sampling = &zap.SamplingConfig{Initial: 100, Thereafter: 100}
 	}
 
 	logger, err := config.Build()

@@ -140,6 +140,9 @@ func LoggerWithConfig(log *zap.Logger, config LoggerConfig) echo.MiddlewareFunc 
 			if config.FieldAdder != nil {
 				fields = append(fields, config.FieldAdder(c)...)
 			}
+			if herr != nil {
+				fields = append(fields, zap.Error(herr))
+			}
 
 			s := resp.Status
 			msg := func() string {
