@@ -7,8 +7,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-const modError = "footer"
-
 type IApp interface {
 	domain.Apper
 	Echo() *echo.Echo

@@ -50,6 +50,13 @@ func errMessageExit(loger *zap.SugaredLogger, title string, err error) {
 
 func main() {
 	flag.Parse()
+	fileExe = os.Args[0]
+	var err error
+	dir, err = filepath.Abs(filepath.Dir(fileExe))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to get absolute path: %v\n", err)
+		os.Exit(1)
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

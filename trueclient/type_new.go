@@ -34,7 +34,7 @@ func New(a domain.Apper) (s *trueClient, err error) {
 	// здесь мы уже получаем ее существующую
 	mdl, err := reductor.Instance().Model(domain.TrueClient)
 	if err != nil {
-		return nil, fmt.Errorf("%w, err")
+		return nil, fmt.Errorf("%w", err)
 	}
 	model, ok := mdl.(modeltrueclient.TrueClientModel)
 	if !ok {

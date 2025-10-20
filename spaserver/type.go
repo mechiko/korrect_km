@@ -22,8 +22,6 @@ import (
 )
 
 const (
-	_defaultReadTimeout     = 5 * time.Second
-	_defaultWriteTimeout    = 5 * time.Second
 	_defaultAddr            = "127.0.0.1:8888"
 	_defaultShutdownTimeout = 1 * time.Second
 )
