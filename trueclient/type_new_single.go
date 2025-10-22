@@ -77,6 +77,12 @@ func NewFromModelSingle(a domain.Apper, model *modeltrueclient.TrueClientModel) 
 		s.Save(model)
 		// сохраняем конфиг после авторизации
 		model.SyncToStore(a)
+		// проверяем авторизацию пингом
+		if _, err := s.PingSuz(); err != nil {
+			// не важно что за ошибка, просто нужна авторизация
+			return s, fmt.Errorf("%s %s", modError, err.Error())
+		}
 	}
+	model.PingSuz = s.pingSUZ
 	return s, nil
 }

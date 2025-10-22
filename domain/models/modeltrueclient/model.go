@@ -46,7 +46,9 @@ var _ domain.Modeler = (*TrueClientModel)(nil)
 
 // создаем модель считываем ее состояние и возвращаем указатель
 func New(app domain.Apper) (*TrueClientModel, error) {
-	model := &TrueClientModel{}
+	model := &TrueClientModel{
+		model: domain.TrueClient,
+	}
 	if err := model.ReadState(app); err != nil {
 		return nil, fmt.Errorf("model ZnakArgegate read state %w", err)
 	}

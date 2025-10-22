@@ -16,6 +16,7 @@ require (
 	github.com/mechiko/barcode v1.0.0
 	github.com/mechiko/dbscan v0.0.0-20250824090424-a3ed3ef70222
 	github.com/mechiko/utility v0.0.0-20250901141646-cc9c20f08412
+	github.com/mechiko/walk v0.0.0-20230816210514-788aa73102d5
 	github.com/pressly/goose/v3 v3.24.3
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
@@ -43,6 +44,7 @@ require (
 	github.com/leaanthony/gosod v1.0.4 // indirect
 	github.com/leaanthony/slicer v1.6.0 // indirect
 	github.com/leaanthony/u v1.1.1 // indirect
+	github.com/lxn/win v0.0.0-20210218163916-a377121e959e // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-sqlite3 v1.14.24 // indirect
@@ -73,5 +75,6 @@ require (
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
+	gopkg.in/Knetic/govaluate.v3 v3.0.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

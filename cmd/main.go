@@ -11,6 +11,7 @@ import (
 	"korrectkm/domain"
 	"korrectkm/domain/models/modeltrueclient"
 	"korrectkm/embedded"
+	"korrectkm/guiconnect"
 	"korrectkm/reductor"
 	"korrectkm/repo"
 	"korrectkm/spaserver"
@@ -46,7 +47,7 @@ func errMessageExit(loger *zap.SugaredLogger, title string, err error) {
 		loger.Errorf("%s %v", title, err)
 	}
 	utility.MessageBox(title, err.Error())
-	os.Exit(-1)
+	os.Exit(1)
 }
 
 func main() {
@@ -106,7 +107,9 @@ func main() {
 	if cfg.Warning() != "" {
 		loger.Infof("pkg:config warning %s", cfg.Warning())
 	}
+
 	errProcessExit := func(title string, err error) {
+		cancel()
 		errMessageExit(loger, title, err)
 	}
 
@@ -145,12 +148,14 @@ func main() {
 	err = repo.New(listDbs, ".")
 	if err != nil {
 		utility.MessageBox("Ошибка запуска репозитория", err.Error())
-		os.Exit(-1)
+		cancel()
+		os.Exit(1)
 	}
 	repoStart, err := repo.GetRepository()
 	if err != nil {
 		utility.MessageBox("Ошибка получения репозитория", err.Error())
-		os.Exit(-1)
+		cancel()
+		os.Exit(1)
 	}
 
 	// создаем редуктор с новой моделью
@@ -159,7 +164,8 @@ func main() {
 	err = modelTcl.ReadState(app)
 	if err != nil {
 		utility.MessageBox("Ошибка чтения данных модели ЧЗ", err.Error())
-		os.Exit(-1)
+		cancel()
+		os.Exit(1)
 	}
 	// загружаем сертификаты пользователя
 	err = modelTcl.LoadStore(app)
@@ -180,6 +186,7 @@ func main() {
 	if err := checkdbg.NewChecks(app).Run(); err != nil {
 		loger.Errorf("check error %v", err)
 		cancel()
+		os.Exit(1)
 	}
 
 	loger.Info("start up webapp")
@@ -197,6 +204,18 @@ func main() {
 	echoLogger, err := zl.GetLogger("echo")
 	if err != nil {
 		errProcessExit("Ошибка получения логера для http", err)
+	}
+
+	// вызываем окно подключения к ЧЗ
+	// err = guiconnect.Start()
+	// if err != nil {
+	// 	errProcessExit("Ошибка подключения к ЧЗ", err)
+	// }
+	err = guiconnect.StartDialog(app, &modelTcl)
+	if err != nil {
+		loger.Errorf("Ошибка подключения к ЧЗ %s", err.Error())
+		cancel()
+		os.Exit(1)
 	}
 
 	// тут инициализируются так же модели для всех видов
