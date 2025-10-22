@@ -208,6 +208,11 @@ func StartDialog(app domain.Apper, model *modeltrueclient.TrueClientModel) error
 								utility.MessageBox("ошибка сохранения модели", err.Error())
 								return
 							}
+							err = app.SaveOptions()
+							if err != nil {
+								utility.MessageBox("ошибка сохранения модели в файл", err.Error())
+								return
+							}
 							dlg.Accept()
 						},
 					},
