@@ -228,7 +228,7 @@ func main() {
 
 	if err := httpServer.PingSetup(); err != nil {
 		httpServer.SetFlush(err.Error(), "error")
-		httpServer.SetActivePage(domain.Home)
+		httpServer.SetActivePage(domain.KMState)
 		loger.Errorf("%s", err.Error())
 	}
 	if err := wails.Run(&options.App{

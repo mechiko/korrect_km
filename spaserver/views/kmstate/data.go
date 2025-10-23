@@ -1,4 +1,4 @@
-package home
+package kmstate
 
 import (
 	"korrectkm/reductor"
@@ -9,12 +9,12 @@ func (t *page) PageData() (interface{}, error) {
 }
 
 // с преобразованием
-func (t *page) PageModel() HomeModel {
+func (t *page) PageModel() KmStateModel {
 	model, _ := reductor.Instance().Model(t.modelType)
-	if mdl, ok := model.(HomeModel); ok {
+	if mdl, ok := model.(KmStateModel); ok {
 		return mdl
 	}
-	return HomeModel{}
+	return KmStateModel{}
 }
 
 // сброс модели редуктора для страницы

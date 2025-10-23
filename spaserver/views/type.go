@@ -7,7 +7,7 @@ import (
 )
 
 type IView interface {
-	PageData() interface{}
+	PageData() (interface{}, error)
 	Routes() error
 	Index(c echo.Context) error
 	// имя подшаблона вида по умолчанию
@@ -18,7 +18,7 @@ type IView interface {
 	Name() string
 	// заголовок страницы
 	Title() string
-	InitData() interface{}
+	InitData(domain.Apper) (interface{}, error)
 	ModelType() domain.Model
 	Svg() string
 	Desc() string

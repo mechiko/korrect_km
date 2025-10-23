@@ -6,6 +6,7 @@ import (
 	"korrectkm/spaserver/views/header"
 	"korrectkm/spaserver/views/home"
 	"korrectkm/spaserver/views/index"
+	"korrectkm/spaserver/views/kmstate"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -39,19 +40,20 @@ func (s *Server) loadViews() {
 	view2 := footer.New(s)
 	s.views[view2.ModelType()] = view2
 	view2.Routes()
-	view2.InitData()
+	view2.InitData(s)
 	// view home
 	view3 := home.New(s)
 	s.views[view3.ModelType()] = view3
 	view3.Routes()
-	view3.InitData()
-	// view4 := setup.New(s)
-	// s.views[view4.ModelType()] = view4
-	// view4.Routes()
-	// view4.InitData()
+	view3.InitData(s)
+	// kmstate
+	view4 := kmstate.New(s)
+	s.views[view4.ModelType()] = view4
+	view4.Routes()
+	view4.InitData(s)
 	// view index
 	view5 := index.New(s)
 	s.views[view5.ModelType()] = view5
 	// header инициализируем последним нужны все виды сервера в списке
-	view1.InitData()
+	view1.InitData(s)
 }

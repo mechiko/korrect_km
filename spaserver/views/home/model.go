@@ -27,13 +27,16 @@ func NewModel(app domain.Apper) (*HomeModel, error) {
 }
 
 // инициализируем модель вида
-func (t *page) InitData() interface{} {
+func (t *page) InitData(_ domain.Apper) (interface{}, error) {
 	model := HomeModel{
 		Title:   "HOME",
 		CodeFNS: `0104630277410873215!,asF,l1k"LH91EE1192PK6ejb9KiEm4jqt2G7tesaQ4bbukQfZumYfUrNxf9kE=`,
 	}
-	reductor.Instance().SetModel(&model, false)
-	return model
+	err := reductor.Instance().SetModel(&model, false)
+	if err != nil {
+		return nil, fmt.Errorf("%w", err)
+	}
+	return model, nil
 }
 
 // синхронизирует с приложением в сторону приложения из модели редуктора

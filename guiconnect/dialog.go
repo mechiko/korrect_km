@@ -22,7 +22,7 @@ func StartDialog(app domain.Apper, model *modeltrueclient.TrueClientModel) error
 	var useConfigDB *walk.CheckBox
 	var storeCB *walk.ComboBox
 	var DB *walk.DataBinder
-	var userClose bool
+	// var userClose bool
 	var omsID, deviceID *walk.TextEdit
 
 	mdlStore := make([]*StoreItem, 0)
@@ -59,7 +59,8 @@ func StartDialog(app domain.Apper, model *modeltrueclient.TrueClientModel) error
 						Name:           "checkUseConfigDB",
 						Text:           "Использовать AlcoHelp3",
 						TextOnLeftSide: true,
-						Checked:        true,
+						Checked:        dcl.Bind("UseConfigDB"),
+						Enabled:        dcl.Bind("IsConfigDB"),
 						OnCheckedChanged: func() {
 							if useConfigDB.Checked() {
 								model.UseConfigDB = true
@@ -164,6 +165,8 @@ func StartDialog(app domain.Apper, model *modeltrueclient.TrueClientModel) error
 							if !useConfigDB.Checked() {
 								model.OmsID = omsID.Text()
 								model.DeviceID = deviceID.Text()
+								model.TokenGIS = ""
+								model.TokenSUZ = ""
 								idx := storeCB.CurrentIndex()
 								if idx < 0 {
 									utility.MessageBox("ошибка", "индекс КЭП меньше 0")
@@ -192,15 +195,15 @@ func StartDialog(app domain.Apper, model *modeltrueclient.TrueClientModel) error
 								model.OmsID = omsID.Text()
 								model.DeviceID = deviceID.Text()
 								idx := storeCB.CurrentIndex()
-								if idx <= 0 {
-									utility.MessageBox("ошибка", "индекс КЭП меньше или равен 0")
+								if idx < 0 {
+									utility.MessageBox("ошибка", "индекс КЭП меньше 0")
 									return
 								}
 								model.HashKey = mdlStore[idx].Hash
 							}
 							err := ping(app, model)
 							if err != nil {
-								utility.MessageBox("ошибка", err.Error())
+								utility.MessageBox("ошибка установки соединения", err.Error())
 								return
 							}
 							err = model.SyncToStore(app)
@@ -229,23 +232,23 @@ func StartDialog(app domain.Apper, model *modeltrueclient.TrueClientModel) error
 		return fmt.Errorf("%w", err)
 	}
 	// This should do it (or not :-p)
-	dlg.Closing().Attach(func(canceled *bool, reason walk.CloseReason) {
-		// если закрывается окно диалога крестом
-		if reason == walk.CloseReasonUnknown {
-			userClose = true
-		}
-	})
+	// dlg.Closing().Attach(func(canceled *bool, reason walk.CloseReason) {
+	// 	// если закрывается окно диалога крестом
+	// 	if reason == walk.CloseReasonUnknown {
+	// 		userClose = true
+	// 	}
+	// })
 
 	if model.UseConfigDB && model.IsConfigDB {
 		storeCB.SetEnabled(false)
 		deviceID.SetEnabled(false)
 		omsID.SetEnabled(false)
 	}
-	if ret := dlg.Run(); ret != 0 {
+	if ret := dlg.Run(); ret != 1 {
 		return fmt.Errorf("dialog return %d", ret)
 	}
-	if userClose {
-		return fmt.Errorf("dialog user close")
-	}
+	// if userClose {
+	// 	return fmt.Errorf("dialog user close")
+	// }
 	return nil
 }

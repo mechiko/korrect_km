@@ -1,8 +1,7 @@
-package home
+package kmstate
 
 import (
 	"korrectkm/domain"
-	"korrectkm/spaserver/views"
 	"strings"
 
 	"github.com/donseba/go-htmx"
@@ -28,17 +27,17 @@ type page struct {
 	defaultTemplate string
 	currentTemplate string
 	title           string
+	description     string
 }
-
-var _ views.IView = (*page)(nil)
 
 func New(app IServer) *page {
 	t := &page{
 		IServer:         app,
-		modelType:       domain.Home,
+		modelType:       domain.KMState,
 		defaultTemplate: "index",
 		currentTemplate: "index",
-		title:           "домашняя страница",
+		title:           "Опрос состояния КМ",
+		description:     "Опрос состояния КМ",
 	}
 	return t
 }
@@ -82,5 +81,5 @@ func (p *page) Svg() string {
 
 // описание вида для меню
 func (p *page) Desc() string {
-	return "домой"
+	return p.description
 }

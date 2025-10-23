@@ -17,9 +17,13 @@ func (t *page) Routes() error {
 }
 
 func (t *page) Index(c echo.Context) error {
+	data, err := t.PageData()
+	if err != nil {
+		return t.ServerError(c, err)
+	}
 	if err := c.Render(http.StatusOK, t.Name(), map[string]interface{}{
 		"template": "content",
-		"data":     t.PageData(),
+		"data":     data,
 	}); err != nil {
 		return t.ServerError(c, err)
 	}
@@ -27,7 +31,10 @@ func (t *page) Index(c echo.Context) error {
 }
 
 func (t *page) modal(c echo.Context) error {
-	model := t.InitData()
+	model, err := t.InitData(t)
+	if err != nil {
+		return t.ServerError(c, err)
+	}
 	if err := c.Render(http.StatusOK, t.Name(), map[string]interface{}{
 		"template": "modal",
 		"data":     model,

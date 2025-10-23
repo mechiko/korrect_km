@@ -89,14 +89,14 @@ func New(a domain.Apper, eLogger *zap.Logger, port string, debug bool) *Server {
 		views:           make(map[domain.Model]views.IView), // массив видов по нему находим шаблоны для рендера
 		menu:            make([]domain.Model, 0),
 		defaultPage:     "",
-		activePage:      domain.Home,
+		activePage:      domain.KMState,
 		htmx:            htmx.New(),
 	}
 
 	e.Renderer = ss
 	ss.templates = templates.New(ss, debug)
-	ss.Routes()
 	ss.menu = append(ss.menu, domain.Home)
+	ss.Routes()
 	ss.sseManager = sse.New()
 	ss.streamError = ss.sseManager.CreateStream("error")
 	ss.streamInfo = ss.sseManager.CreateStream("info")
