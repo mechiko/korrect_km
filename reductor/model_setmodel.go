@@ -41,7 +41,7 @@ func SetModel[T domain.Modeler](src T, send bool) error {
 		return fmt.Errorf("reductor: model type is invalide")
 	}
 
-	storeModel, err := Clone(src)
+	storeModel, err := CloneDeep(src)
 	if err != nil {
 		return fmt.Errorf("reductor: clone error %w", err)
 	}

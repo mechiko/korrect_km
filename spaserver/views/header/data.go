@@ -34,16 +34,13 @@ func (t *page) InitData(app domain.Apper) (interface{}, error) {
 }
 
 func (t *page) PageData() (interface{}, error) {
-	return reductor.Instance().Model(t.modelType)
+	return reductor.Model[*MenuModel](t.modelType)
 }
 
 // с преобразованием
 func (t *page) PageModel() MenuModel {
-	model, _ := reductor.Instance().Model(t.modelType)
-	if mdl, ok := model.(*MenuModel); ok {
-		return *mdl
-	}
-	return MenuModel{}
+	model, _ := reductor.Model[*MenuModel](t.modelType)
+	return *model
 }
 
 // сброс модели редуктора для страницы

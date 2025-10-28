@@ -5,16 +5,13 @@ import (
 )
 
 func (t *page) PageData() (interface{}, error) {
-	return reductor.Instance().Model(t.modelType)
+	return reductor.Model[*HomeModel](t.modelType)
 }
 
 // с преобразованием
 func (t *page) PageModel() HomeModel {
-	model, _ := reductor.Instance().Model(t.modelType)
-	if mdl, ok := model.(HomeModel); ok {
-		return mdl
-	}
-	return HomeModel{}
+	model, _ := reductor.Model[*HomeModel](t.modelType)
+	return *model
 }
 
 // сброс модели редуктора для страницы
