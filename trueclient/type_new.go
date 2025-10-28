@@ -32,13 +32,9 @@ func New(a domain.Apper) (s *trueClient, err error) {
 
 	// при запуске программы модель должна быть инициализирована
 	// здесь мы уже получаем ее существующую
-	mdl, err := reductor.Instance().Model(domain.TrueClient)
+	model, err := reductor.Model[*modeltrueclient.TrueClientModel](domain.TrueClient)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
-	}
-	model, ok := mdl.(modeltrueclient.TrueClientModel)
-	if !ok {
-		return nil, fmt.Errorf("reductor model trueclient wrong type %T", mdl)
 	}
 	s = &trueClient{
 		Apper:      a,
@@ -80,7 +76,7 @@ func New(a domain.Apper) (s *trueClient, err error) {
 			return nil, fmt.Errorf("%s %w", modError, err)
 		}
 		// сохраняем конфиг в объекте
-		s.Save(&model)
+		s.Save(model)
 		// сохраняем конфиг после авторизации
 		model.SyncToStore(s)
 	}

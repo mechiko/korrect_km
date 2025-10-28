@@ -6,7 +6,7 @@ import (
 )
 
 func (t *page) PageData() (interface{}, error) {
-	return reductor.Instance().Model(t.modelType)
+	return reductor.Model[*KmStateModel](t.modelType)
 }
 
 // с преобразованием

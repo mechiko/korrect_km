@@ -67,7 +67,7 @@ func (ctx *cloneCtx) setPointer(ptr unsafe.Pointer, value reflect.Value) {
 	ctx.ptrs[ptr] = value
 }
 
-// Clone returns a deep copy of passed argument. The cloned value will be identical to the source value.
+// CloneDeep returns a deep copy of passed argument. The cloned value will be identical to the source value.
 // Cloned pointers will point to a new object with the same value as in the source.
 // This also works for nested values, such as parts of collections (arrays, slices, and maps) or fields of passed structs.
 // It additionally guarantied that if two or more pointers at the source object references to the same value, clones pointers will refers to same vallue.
@@ -75,7 +75,7 @@ func (ctx *cloneCtx) setPointer(ptr unsafe.Pointer, value reflect.Value) {
 // By default, unexported struct fields will be shallow copied, but this can be changed with functional options.
 // Unsupported types (channels and funcs) will be shallow copied by default, but this can also be changed with functional options.
 // Unsafe pointers will be treated like ordinary values.
-func Clone[T any](src T, opts ...funcOptions) (T, error) {
+func CloneDeep[T any](src T, opts ...funcOptions) (T, error) {
 	// build a clone config
 	cfg := config{}
 	for _, o := range opts {
