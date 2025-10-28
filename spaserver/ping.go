@@ -30,6 +30,5 @@ func (s *Server) PingSetup() error {
 	}
 
 	model.PingSuz = png
-	reductor.Instance().SetModel(&model, false)
-	return nil
+	return reductor.SetModel(&model, false)
 }

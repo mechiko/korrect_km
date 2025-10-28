@@ -32,7 +32,7 @@ func (t *page) InitData(_ domain.Apper) (interface{}, error) {
 		Title:   "HOME",
 		CodeFNS: `0104630277410873215!,asF,l1k"LH91EE1192PK6ejb9KiEm4jqt2G7tesaQ4bbukQfZumYfUrNxf9kE=`,
 	}
-	err := reductor.Instance().SetModel(&model, false)
+	err := reductor.SetModel(&model, false)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}

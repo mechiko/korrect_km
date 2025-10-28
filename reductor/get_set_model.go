@@ -26,7 +26,7 @@ func (rdc *Reductor) Model(page domain.Model) (interface{}, error) {
 // модель должна быть указателем!
 // в редукторе модели храним тоже по указателям
 // send - извещать в канал о смене состояния (это когда смена состояния в форме которой незачем обновлятся)
-func (rdc *Reductor) SetModel(model domain.Modeler, send bool) error {
+func (rdc *Reductor) SetModelOld(model domain.Modeler, send bool) error {
 	rdc.mutex.Lock()
 	defer rdc.mutex.Unlock()
 	if !utility.IsPointer(model) {

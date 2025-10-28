@@ -7,7 +7,7 @@ import (
 )
 
 type IView interface {
-	PageData() (interface{}, error)
+	// PageData() (interface{}, error)
 	Routes() error
 	Index(c echo.Context) error
 	// имя подшаблона вида по умолчанию

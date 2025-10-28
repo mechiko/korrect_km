@@ -58,7 +58,7 @@ func (t *page) InitData(app domain.Apper) (interface{}, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
-	err = reductor.Instance().SetModel(model, false)
+	err = reductor.SetModel(model, false)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}

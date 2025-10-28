@@ -8,7 +8,6 @@ import (
 	"korrectkm/app"
 	"korrectkm/checkdbg"
 	"korrectkm/config"
-	"korrectkm/domain"
 	"korrectkm/domain/models/modeltrueclient"
 	"korrectkm/embedded"
 	"korrectkm/guiconnect"
@@ -41,6 +40,7 @@ var dir string
 
 // если local true то папка создается локально
 var local = flag.Bool("local", false, "")
+var dontconnect = flag.Bool("dontconnect", false, "")
 
 func errMessageExit(loger *zap.SugaredLogger, title string, err error) {
 	if loger != nil {
@@ -109,8 +109,13 @@ func main() {
 	}
 
 	errProcessExit := func(title string, err error) {
+		utility.MessageBox(title, err.Error())
+		loger.Errorf("errProcessExit: %s %v", title, err)
 		cancel()
-		errMessageExit(loger, title, err)
+		err = group.Wait()
+		fmt.Printf("game over! error %v\n", err)
+		zl.Shutdown()
+		os.Exit(1)
 	}
 
 	reductorLogger, err := zl.GetLogger("reductor")
@@ -147,33 +152,28 @@ func main() {
 
 	err = repo.New(listDbs, ".")
 	if err != nil {
-		utility.MessageBox("Ошибка запуска репозитория", err.Error())
-		cancel()
-		os.Exit(1)
+		errProcessExit("Ошибка запуска репозитория", err)
 	}
 	repoStart, err := repo.GetRepository()
 	if err != nil {
-		utility.MessageBox("Ошибка получения репозитория", err.Error())
-		cancel()
-		os.Exit(1)
+		errProcessExit("Ошибка получения репозитория", err)
 	}
 
 	// создаем редуктор с новой моделью
-	modelTcl := modeltrueclient.TrueClientModel{}
-	// читаем модель из файла toml
-	err = modelTcl.ReadState(app)
+	modelTcl, err := modeltrueclient.New(app)
 	if err != nil {
-		utility.MessageBox("Ошибка чтения данных модели ЧЗ", err.Error())
-		cancel()
-		os.Exit(1)
+		errProcessExit("Ошибка создания модели TrueClientModel", err)
 	}
 	// загружаем сертификаты пользователя
 	err = modelTcl.LoadStore(app)
 	if err != nil {
-		loger.Errorf("%s", err.Error())
+		errProcessExit("Ошибка загрузки сертификатов пользователя", err)
 	}
 
-	reductor.Instance().SetModel(&modelTcl, false)
+	err = reductor.SetModel(modelTcl, false)
+	if err != nil {
+		errProcessExit("Ошибка записи модели в редуктор", err)
+	}
 
 	group.Go(func() error {
 		go func() {
@@ -184,9 +184,7 @@ func main() {
 	})
 	// тесты
 	if err := checkdbg.NewChecks(app).Run(); err != nil {
-		loger.Errorf("check error %v", err)
-		cancel()
-		os.Exit(1)
+		errProcessExit("Ошибка checkdbg.NewChecks(app).Run()", err)
 	}
 
 	loger.Info("start up webapp")
@@ -207,30 +205,18 @@ func main() {
 	}
 
 	// вызываем окно подключения к ЧЗ
-	// err = guiconnect.Start()
-	// if err != nil {
-	// 	errProcessExit("Ошибка подключения к ЧЗ", err)
-	// }
-	err = guiconnect.StartDialog(app, &modelTcl)
-	if err != nil {
-		loger.Errorf("Ошибка подключения к ЧЗ %s", err.Error())
-		cancel()
-		os.Exit(1)
+	if !*dontconnect {
+		err = guiconnect.StartDialog(app, modelTcl)
+		if err != nil {
+			errProcessExit("Ошибка подключения к ЧЗ", err)
+		}
 	}
 
 	// тут инициализируются так же модели для всех видов
 	httpServer := spaserver.New(app, echoLogger, port, true)
 	// запускаем сервер эхо через него SSE работает для флэш сообщений
 	httpServer.Start()
-	// для отладки посмотреть редуктор после инициализации
-	// rdct := reductor.Instance()
-	// loger.Info("start wails %v", rdct.Model(reductor.Home))
 
-	if err := httpServer.PingSetup(); err != nil {
-		httpServer.SetFlush(err.Error(), "error")
-		httpServer.SetActivePage(domain.KMState)
-		loger.Errorf("%s", err.Error())
-	}
 	if err := wails.Run(&options.App{
 		Title:     "Утилиты для ЧЗ и А3",
 		Width:     1040,
@@ -242,7 +228,7 @@ func main() {
 		DisableResize: false,
 		Fullscreen:    false,
 		Frameless:     false,
-		// CSSDragProperty:   "widows",
+		// CSSDragProperty:   "windows",
 		// CSSDragValue:      "1",
 		StartHidden:       false,
 		HideWindowOnClose: false,

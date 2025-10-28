@@ -10,5 +10,7 @@ func (t *trueClient) Save(model *modeltrueclient.TrueClientModel) {
 	model.AuthTime = t.authTime
 	model.TokenGIS = t.tokenGis
 	model.TokenSUZ = t.tokenSuz
-	reductor.Instance().SetModel(model, false)
+	if err := reductor.SetModel(model, false); err != nil {
+		t.Logger().Errorf("trueclient save redutctor model error %w", err)
+	}
 }
