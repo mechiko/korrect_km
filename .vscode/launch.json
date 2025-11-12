@@ -22,8 +22,8 @@
       "program": "${workspaceFolder}/cmd/korrectkm.exe",
       "preLaunchTask": "build debug",
       "args": [
-        "-local"
-        // "-dontconnect"
+        "-local",
+        "-dontconnect"
       ],
       "cwd": "${workspaceFolder}/cmd"
     },

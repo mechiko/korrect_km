@@ -27,6 +27,18 @@ func (t *page) Index(c echo.Context) error {
 	return nil
 }
 
+// сброс к начальному состоянию вида
+func (t *page) Reset(c echo.Context) error {
+	data, err := t.InitData(t)
+	if err != nil {
+		return t.ServerError(c, err)
+	}
+	if err := c.Render(http.StatusOK, t.Name(), t.RenderPageModel("index", data)); err != nil {
+		return t.ServerError(c, err)
+	}
+	return nil
+}
+
 func (t *page) selectFile(c echo.Context) error {
 	model, err := t.PageModel()
 	if err != nil {
@@ -36,9 +48,16 @@ func (t *page) selectFile(c echo.Context) error {
 	if err != nil {
 		return t.ServerError(c, err)
 	}
+	err = model.loadCisFromFile()
+	if err != nil {
+		return t.ServerError(c, err)
+	}
 	err = reductor.SetModel(model, false)
 	if err != nil {
 		return t.ServerError(c, err)
 	}
-	return c.String(200, model.File)
+	if err := c.Render(http.StatusOK, t.Name(), t.RenderPageModel("page", model)); err != nil {
+		return t.ServerError(c, err)
+	}
+	return nil
 }

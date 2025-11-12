@@ -1,0 +1,22 @@
+<div class="m-2">
+  <p class="p-1 text-primary">Загружено КМ:</p>
+  <table class="table-auto border border-gray-700 border-separate border-spacing-0.5">
+    <tr>
+      {{ template "info_cis" . }}
+    </tr>
+  </table> 
+</div>
+{{if ne $.Progress 0}}
+<div class="" hx-get="/kmstate/progress" hx-trigger="every 300ms" hx-target="this" hx-swap="innerHTML"></div>
+{{end}}
+<div class="m-2">
+  <button class="btn btn-outline btn-default"
+          hx-get="/kmstate/search" hx-trigger="click" hx-target="#page" hx-swap="innerHTML"
+          >
+    Обработка
+  </button>
+  <button class="btn btn-outline btn-default"
+          hx-get="/kmstate/reset" hx-trigger="click" hx-target="#page" hx-swap="innerHTML">
+    Сброс
+  </button>
+</div>

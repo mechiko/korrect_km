@@ -6,8 +6,8 @@ import (
 	"korrectkm/reductor"
 )
 
-func (t *page) InitData(app domain.Apper) (interface{}, error) {
-	model, err := NewModel(app)
+func (t *page) InitData(_ domain.Apper) (interface{}, error) {
+	model, err := NewModel(t)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
@@ -38,11 +38,22 @@ func (t *page) PageData() (interface{}, error) {
 }
 
 // с преобразованием
-func (t *page) PageModel() MenuModel {
-	model, _ := reductor.Model[*MenuModel](t.modelType)
-	return *model
+func (t *page) PageModel() (model *MenuModel, err error) {
+	model, err = reductor.Model[*MenuModel](t.modelType)
+	if err != nil {
+		return &MenuModel{}, fmt.Errorf("%w", err)
+	}
+	return model, nil
 }
 
 // сброс модели редуктора для страницы
 func (t *page) ResetData() {
+}
+
+func (t *page) ModelUpdate(model *MenuModel) error {
+	err := reductor.SetModel(model, false)
+	if err != nil {
+		return fmt.Errorf("kmstate page model update %w", err)
+	}
+	return nil
 }

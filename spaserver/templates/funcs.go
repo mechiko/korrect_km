@@ -2,6 +2,7 @@ package templates
 
 import (
 	"html/template"
+	"path/filepath"
 	"time"
 )
 
@@ -49,5 +50,11 @@ var functions = template.FuncMap{
 	},
 	"noescape": func(str string) template.HTML {
 		return template.HTML(str)
+	},
+	"base": func(t string) string {
+		if t == "" {
+			return ""
+		}
+		return filepath.Base(t)
 	},
 }

@@ -6,9 +6,6 @@ import (
 	"github.com/mechiko/utility"
 )
 
-// возвращает map[string]interface{}
-// возвращает ошибку когда не найдено и когда реально ошибка
-// если что, такая ошибка может быть errors.Is(err, db.ErrNoMoreRows)
 func (z *DbZnak) OrderCodes(id int64) (out []string, err error) {
 	sess := z.dbSession
 	codes := make([]map[string]interface{}, 0)

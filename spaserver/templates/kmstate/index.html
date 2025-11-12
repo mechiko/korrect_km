@@ -1,7 +1,7 @@
-<div id="home">
-    {{ template "navbar" }}
-    <div class="w-full">
+<div id="page">
+    {{ template "navbar" . }}
+    <div id="page" class="w-full">
     {{ template "page" . }}
     </div>
-    {{ template "footer" }}
+    {{ template "footer" . }}
 </div>

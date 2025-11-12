@@ -34,3 +34,7 @@ func (t *page) Datamatrix(c echo.Context) error {
 	c.Blob(200, "image/png", buffer.Bytes())
 	return nil
 }
+
+func (t *page) Reset(c echo.Context) error {
+	return nil
+}

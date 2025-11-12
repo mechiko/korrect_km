@@ -9,7 +9,6 @@ import (
 )
 
 func (t *page) Routes() error {
-	// Serve static and media files under /static/ and /uploads/ path.
 	t.Echo().GET("/header", t.Index)
 	t.Echo().GET("/header/modal", t.modal)
 	t.Echo().GET("/header/:page", t.pager)
@@ -53,7 +52,20 @@ func (t *page) pager(c echo.Context) error {
 	if err != nil {
 		return t.ServerError(c, err)
 	}
+	model, err := t.PageModel()
+	if err != nil {
+		return t.ServerError(c, err)
+	}
 	t.SetActivePage(tm)
+	model.SyncActive(page)
+	err = t.ModelUpdate(model)
+	if err != nil {
+		return t.ServerError(c, err)
+	}
 	t.Reload()
+	return nil
+}
+
+func (t *page) Reset(c echo.Context) error {
 	return nil
 }

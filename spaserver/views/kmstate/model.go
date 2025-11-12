@@ -20,7 +20,7 @@ type CisSlice []*Cis
 type KmStateModel struct {
 	model               domain.Model
 	Title               string
-	State               int
+	IsProgress          bool // 1 если идет процесс загрузки для отображения прогресса
 	File                string
 	CisIn               []string // список CIS для запроса
 	Chunks              int      // куски
@@ -29,6 +29,7 @@ type KmStateModel struct {
 	ExcelChunkSize      int      // размер куска для выгрузки в файл ексель
 	IsConnectedTrueZnak bool     // есть подключение к ЧЗ
 	IsTrueZnakA3        bool     // подключена БД ЧЗ А3
+	AtkId               int      // номер ATK в ЧЗ А3
 	OrderId             int      // номер заказа в ЧЗ А3
 	UtilisationId       int      // номер отчета нанесения в ЧЗ А3
 	Progress            int      // прогресс опроса

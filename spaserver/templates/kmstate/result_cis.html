@@ -1,0 +1,28 @@
+{{if $.CisStatus}}
+  {{ template "chunk" . }}
+  <div class="w-full mb-2">
+  <table class="w-1/2 ml-1 border border-collapse">
+    <caption>Статусы КМ</caption>
+    <col style="width:20%">
+    <col style="width:20%">
+    <col style="width:10%">
+    <col style="width:10%">
+    <tbody>
+    {{range $cim, $cisMap := $.CisStatus }}
+    {{range $ci, $cisCount := $cisMap }}
+    <tr class="text-base">
+      <td class="pl-1 border">{{if (index $.MapCisStatusDict $cim)}}{{index $.MapCisStatusDict $cim}}{{else}}{{$cim}}{{end}}</td>
+      <td class="pl-1 border">{{if (index $.MapCisStatusExDict $ci)}}{{index $.MapCisStatusExDict $ci}}{{else}}{{$ci}}{{end}}</td>
+      <td class="text-base pl-1 border">{{$cisCount}}</td>
+      <td class="text-base pl-1 border">
+        <button class="btn btn-outline btn-default" hx-get="/kmstate/excel/{{$cim}}/{{$ci}}" hx-trigger="click" hx-target="#excel-result" hx-swap="innerHTML">Выгрузить</button>
+        {{if $.IsZnak}}<button class="btn btn-outline btn-default" hx-get="/kmstate/order/{{$cim}}/{{$ci}}" hx-trigger="click" hx-target="#excel-result" hx-swap="innerHTML">Создать заказ</button>{{end}}
+      </td>
+    </tr>
+    {{end}}
+    {{end}}
+    </tbody>
+  </table>
+  <div id="excel-result"></div>
+  </div>
+{{end}}

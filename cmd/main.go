@@ -8,6 +8,7 @@ import (
 	"korrectkm/app"
 	"korrectkm/checkdbg"
 	"korrectkm/config"
+	"korrectkm/domain"
 	"korrectkm/domain/models/modeltrueclient"
 	"korrectkm/embedded"
 	"korrectkm/guiconnect"
@@ -214,6 +215,7 @@ func main() {
 
 	// тут инициализируются так же модели для всех видов
 	httpServer := spaserver.New(app, echoLogger, port, true)
+	httpServer.SetActivePage(domain.KMState)
 	// запускаем сервер эхо через него SSE работает для флэш сообщений
 	httpServer.Start()
 
