@@ -37,7 +37,10 @@ func (t *trueClient) CisesListPost(target interface{}, cises []string) (string, 
 	buf, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode != 200 {
 		json.NewDecoder(bytes.NewBuffer(buf)).Decode(target)
-		return string(buf), fmt.Errorf("status %d", resp.StatusCode)
+		if resp.StatusCode == 404 {
+			return string(buf), fmt.Errorf("коды не найдены")
+		}
+		return string(buf), fmt.Errorf("ошибка запроса %d", resp.StatusCode)
 	}
 	// потоковый Unmarshal
 	t.Logger().Debugf("json_post:[%s]", buf)

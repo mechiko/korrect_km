@@ -1,1 +1,4 @@
-<progress class="m-2 progress progress-info w-56" value="{{$.Progress}}" max="100"></progress>
+<div id="progress" hx-get="/kmstate/progress" hx-trigger="every 300ms" hx-target="#progress" hx-swap="outerHTML"
+  hx-select="#progress" hx-select-oob="#page">
+  <progress class="m-2 progress progress-info w-56" value="{{$.Progress}}" max="100"></progress>
+</div>

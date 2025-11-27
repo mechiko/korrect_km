@@ -1,7 +1,8 @@
-<div hx-target="this" hx-swap="outerHTML">
-  <label class="input input-bordered flex items-center gap-2">
-    <span class="text-primary">Макс. размер части:</span>
-    <input name="chunk" class="grow" hx-post="/kmstate/chunk" hx-trigger="keyup changed delay:500ms"
-           value="{{$.ExcelChunkSize}}">
-  </label>
+<div class="m-2 flex text-sm items-center gap-2" hx-target="this" hx-swap="outerHTML">
+  <div class="text-gray-700 font-bold">
+    Размер блока выгрузки:
+  </div>
+  <input id="chunk" name="chunk" hx-post="/kmstate/chunk" hx-trigger="keyup changed delay:500ms"
+    class="shadow appearance-none border rounded p-1 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+    type="text" placeholder="30000" value="{{$.ExcelChunkSize}}">
 </div>
