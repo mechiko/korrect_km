@@ -23,7 +23,7 @@
       "preLaunchTask": "build debug",
       "args": [
         "-local",
-        "-dontconnect"
+        // "-dontconnect"
       ],
       "cwd": "${workspaceFolder}/cmd"
     },

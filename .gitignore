@@ -132,7 +132,7 @@ output/
 .nevakod/
 .dist/
 .data/
-.vscode/
+# .vscode/
 .korrectkm/
 
 # Go-specific binary blobs
@@ -150,7 +150,7 @@ coverage*.out
 
 tmp/**/*.csv
 tmp/**/*.{xls,xlsx}
-in/**/*.csv
-out/**/*.{xls,xlsx}
+in/
+out/
 cmd/**/*.csv
 cmd/**/*.{xls,xlsx}
