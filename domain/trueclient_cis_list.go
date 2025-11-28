@@ -134,4 +134,6 @@ type CisPostJson struct {
 			IsVarQuantity bool `json:"isVarQuantity"`
 		} `json:"specialAttributes"`
 	} `json:"result"`
+	ErrorMessage string `json:"errorMessage"`
+	ErrorCode    string `json:"errorCode"`
 }

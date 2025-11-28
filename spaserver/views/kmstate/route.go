@@ -2,8 +2,10 @@ package kmstate
 
 import (
 	"errors"
+	"fmt"
 	"korrectkm/reductor"
 	"net/http"
+	"path/filepath"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -18,6 +20,7 @@ func (t *page) Routes() error {
 	t.Echo().GET(base+"/reset", t.Reset)
 	t.Echo().GET(base+"/progress", t.progress)
 	t.Echo().GET(base+"/search", t.search)
+	t.Echo().GET(base+"/excel/:status/:statusex", t.excel)
 	return nil
 }
 
@@ -103,9 +106,50 @@ func (t *page) search(c echo.Context) error {
 	}
 	// запускаем прогресс чтобы отобразить на странице он отображается когда больше 0
 	data.IsProgress = true
+	if err := t.ModelUpdate(data); err != nil {
+		return t.ServerError(c, err)
+	}
 	go t.Search()
 	if err := c.Render(http.StatusOK, t.Name(), t.RenderPageModel("process_cis", data)); err != nil {
 		return t.ServerError(c, err)
 	}
+	return nil
+}
+
+func (t *page) excel(c echo.Context) error {
+	status := c.Param("status")
+	statusEx := c.Param("statusex")
+	file, err := utility.DialogSaveFile(utility.Excel, "", ".")
+	if err != nil {
+		return t.ServerError(c, err)
+	}
+	file = fmt.Sprintf("%s_%s", file, status)
+	data, err := t.PageModel()
+	if err != nil {
+		return t.ServerError(c, err)
+	}
+	allcis := data.CisOut
+	arrStatus := make([]string, 0)
+	for _, cis := range allcis {
+		if (cis.Status == status) && (cis.StatusEx == statusEx) {
+			arrStatus = append(arrStatus, cis.Cis)
+		}
+	}
+	size := data.ExcelChunkSize
+	if size <= 0 {
+		size = 30000
+	}
+	fName, err := t.ToExcel(arrStatus, file, size)
+	if err != nil {
+		return t.ServerError(c, err)
+	}
+	fName = filepath.Base(fName)
+	// t.SetFlush("Выгрузка списка КМ", fmt.Sprintf("записано %d КМ в файл %s", len(arrStatus), fName))
+	t.SetFlush("Выгрузка списка КМ", fmt.Sprintf("записано %d КМ", len(arrStatus)))
+	t.ServerError(c, fmt.Errorf("записано %d КМ в файл %s", len(arrStatus), fName))
+	// возвращаем имя файла для отображения на форме
+	out := fmt.Sprintf("записано %d кодов маркировки", len(arrStatus))
+	c.String(200, out)
+	// c.NoContent(204)
 	return nil
 }

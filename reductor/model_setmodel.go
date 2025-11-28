@@ -20,7 +20,11 @@ func Model[T domain.Modeler](src domain.Model) (T, error) {
 			return resultNil, fmt.Errorf("reductor internal error model is pointer")
 		}
 		if resultOK, ok := pageModel.(T); ok {
-			return resultOK, nil
+			returnModel, err := CloneDeep(resultOK)
+			if err != nil {
+				return resultNil, fmt.Errorf("reductor clone model %w", err)
+			}
+			return returnModel, nil
 		}
 		return resultNil, fmt.Errorf("model wrong type %T", pageModel)
 	}

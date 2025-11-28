@@ -30,22 +30,6 @@ func (t *page) Search() {
 		t.Logger().Errorf("reenter page:kmstate:search")
 		return
 	}
-	// time.Sleep(time.Second * 10)
-	// for range 10 {
-	// 	data, err := t.PageModel()
-	// 	if err != nil {
-	// 		t.Logger().Errorf("page:kmstate:search model %v", err)
-	// 		utility.MessageBox("ошибка программы", err.Error())
-	// 		return
-	// 	}
-	// 	data.Progress += 10
-	// 	if err := t.ModelUpdate(data); err != nil {
-	// 		t.Logger().Errorf("page:kmstate:search model %v", err)
-	// 		utility.MessageBox("ошибка программы", err.Error())
-	// 		return
-	// 	}
-	// 	time.Sleep(time.Second * 1)
-	// }
 	data, err := t.PageModel()
 	if err != nil {
 		t.Logger().Errorf("page:kmstate:search model %v", err)
@@ -62,6 +46,11 @@ func (t *page) Search() {
 		}
 	}()
 	mtcl, err := reductor.Model[*modeltrueclient.TrueClientModel](domain.TrueClient)
+	if err != nil {
+		t.Logger().Errorf("page:kmstate:search reductor.Model %v", err)
+		data.Errors = append(data.Errors, err.Error())
+		return
+	}
 	tc, err := trueclient.NewFromModelSingle(t, mtcl)
 	if err != nil {
 		t.Logger().Errorf("page:kmstate:search model %v", err)
@@ -100,6 +89,12 @@ func (t *page) Search() {
 			// status := domain.DictCisTypes(cisItem.Result.Status)
 			status := strings.ToLower(cisItem.Result.Status)
 			statusEx := strings.ToLower(cisItem.Result.StatusEx)
+			if cisItem.ErrorMessage != "" {
+				status = strings.ToLower(cisItem.ErrorMessage)
+			}
+			if cisItem.ErrorCode != "" {
+				statusEx = strings.ToLower(cisItem.ErrorCode)
+			}
 			if _, ok := cisStatus[status]; !ok {
 				cisStatus[status] = make(map[string]int)
 				cisStatus[status][statusEx] = 1
