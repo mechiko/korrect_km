@@ -64,8 +64,10 @@ func (t *page) Search() {
 	// start := time.Now()
 	deltaProgressChunk := float64(100)
 	if len(data.CisIn) > chunkSize {
-		deltaProgressChunk = float64(len(data.CisIn)*100) / float64(len(data.CisIn)/chunkSize)
+		numChunks := (len(data.CisIn) + chunkSize - 1) / chunkSize
+		deltaProgressChunk = 100.0 / float64(numChunks)
 	}
+	progress := 0.0
 	for chunk := range chunks {
 		cisResponce := []domain.CisPostJson{}
 		if _, err := tc.CisesListPost(&cisResponce, chunk); err != nil {
@@ -79,7 +81,6 @@ func (t *page) Search() {
 				cisResponce = append(cisResponce, resp)
 			}
 		}
-		data.Progress += int(deltaProgressChunk)
 		// 	// вставка данных в бд
 		// 	if err := t.Repo().DbLite().InsertCisRequestPost(cisResponce); err != nil {
 		// 		model.Stats.Errors = append(model.Stats.Errors, tc.Errors()...)
@@ -95,18 +96,15 @@ func (t *page) Search() {
 			if cisItem.ErrorCode != "" {
 				statusEx = strings.ToLower(cisItem.ErrorCode)
 			}
-			if _, ok := cisStatus[status]; !ok {
+			if cisStatus[status] == nil {
 				cisStatus[status] = make(map[string]int)
-				cisStatus[status][statusEx] = 1
-			} else {
-				if count, ok := cisStatus[status][statusEx]; !ok {
-					cisStatus[status][statusEx] = 1
-				} else {
-					cisStatus[status][statusEx] = count + 1
-				}
 			}
+			cisStatus[status][statusEx]++
 			cisOut = append(cisOut, &domain.Cis{Cis: cisItem.Result.Cis, Status: status, StatusEx: statusEx})
 		}
+		progress += deltaProgressChunk
+		data.Progress = int(progress)
+		reductor.SetModel(data, false)
 	}
 	// data, _ = t.PageModel()
 	// t.Logger().Debugf("%s CisRequest time since %v", modError, time.Since(start))

@@ -8,7 +8,6 @@ import (
 	"net/http"
 )
 
-// Host:   "markirovka.sandbox.crptech.ru"
 func (t *trueClient) CisesListPost(target interface{}, cises []string) (string, error) {
 	var u = t.urlGIS
 	u.Path = `/api/v3/true-api/cises/short/list`
@@ -25,9 +24,7 @@ func (t *trueClient) CisesListPost(target interface{}, cises []string) (string, 
 	req.Header.Add("Accept", accept)
 	req.Header.Add("Accept-Charset", "utf-8")
 	req.Header.Add("Content-Type", contentType)
-	// req.Header.Add("clientToken", t.tokenGis)
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", t.tokenGis))
-	// req.Header.Add("X-Signature", signBody)
 
 	resp, err := t.httpClient.Do(req)
 	if err != nil {

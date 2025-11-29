@@ -17,7 +17,7 @@ func (m *KmStateModel) loadCisFromFile() error {
 	}
 	cises, err := utility.ReadTextStringArray(m.File)
 	if err != nil {
-		return fmt.Errorf("file %s read csv error %w", err)
+		return fmt.Errorf("file read csv error %w", err)
 	}
 	m.CisIn = make([]string, 0, len(cises))
 	for iRow, row := range cises {
