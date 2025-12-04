@@ -1,5 +1,10 @@
-<div id="progress"></div>
-<div id="page" class="w-full">
+<div id="progress" class="bg-white shadow-lg rounded" >
+  <progress class="m-2 w-56 [&::-webkit-progress-bar]:rounded-lg [&::-webkit-progress-value]:rounded-lg   [&::-webkit-progress-bar]:bg-slate-300 [&::-webkit-progress-value]:bg-violet-400 [&::-moz-progress-bar]:bg-violet-400" 
+    value="100" max="100">
+    обработка...
+  </progress>
+</div>
+<div id="page" class="p-1 w-full">
 {{if len $.CisIn}}
 {{ template "process_cis" . }}
 {{else}}

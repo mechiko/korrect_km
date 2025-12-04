@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"korrectkm/reductor"
 	"net/http"
-	"path/filepath"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -139,17 +138,15 @@ func (t *page) excel(c echo.Context) error {
 	if size <= 0 {
 		size = 30000
 	}
-	fName, err := t.ToExcel(arrStatus, file, size)
+	fNames, err := t.ToExcel(arrStatus, file, size)
 	if err != nil {
 		return t.ServerError(c, err)
 	}
-	fName = filepath.Base(fName)
-	// t.SetFlush("Выгрузка списка КМ", fmt.Sprintf("записано %d КМ в файл %s", len(arrStatus), fName))
-	t.SetFlush("Выгрузка списка КМ", fmt.Sprintf("записано %d КМ", len(arrStatus)))
-	t.ServerError(c, fmt.Errorf("записано %d КМ в файл %s", len(arrStatus), fName))
+	msg := fmt.Sprintf("записано %d КМ в %d файл(а,ов)", len(arrStatus), len(fNames))
+	t.SetFlush(msg, "info")
 	// возвращаем имя файла для отображения на форме
-	out := fmt.Sprintf("записано %d кодов маркировки", len(arrStatus))
-	c.String(200, out)
-	// c.NoContent(204)
+	// out := fmt.Sprintf("записано %d кодов маркировки %d файлов", len(arrStatus), len(fNames))
+	// c.String(200, out)
+	c.NoContent(204)
 	return nil
 }

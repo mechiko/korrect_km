@@ -9,12 +9,6 @@ import (
 
 const modError = "pkg:excel"
 
-// type Apper interface {
-// 	Options() *config.Configuration
-// 	StartDate() time.Time
-// 	EndDate() time.Time
-// }
-
 type ucexcel struct {
 	domain.Apper
 	layout             string
@@ -39,7 +33,7 @@ func New(app domain.Apper, layout string, template string, nameFile string) *uce
 		layout = app.Options().Layouts.TimeLayoutDay
 	}
 	excel := &ucexcel{
-		// Apper:    app,
+		Apper:    app,
 		layout:   layout,
 		template: template,
 		nameFile: nameFile,

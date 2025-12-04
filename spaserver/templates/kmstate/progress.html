@@ -1,4 +1,8 @@
-<div id="progress" hx-get="/kmstate/progress" hx-trigger="every 300ms" hx-target="#progress" hx-swap="outerHTML"
+<div id="progress" class="bg-white shadow-lg rounded" 
+  hx-get="/kmstate/progress" hx-trigger="every 300ms" hx-target="#progress" hx-swap="outerHTML"
   hx-select="#progress" hx-select-oob="#page">
-  <progress class="m-2 progress progress-info w-56" value="{{$.Progress}}" max="100"></progress>
+  <progress class="m-2 w-56 [&::-webkit-progress-bar]:rounded-lg [&::-webkit-progress-value]:rounded-lg   [&::-webkit-progress-bar]:bg-slate-300 [&::-webkit-progress-value]:bg-violet-400 [&::-moz-progress-bar]:bg-violet-400" 
+    value="{{$.Progress}}" max="100">
+    обработка...
+  </progress>
 </div>
