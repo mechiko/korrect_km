@@ -1,0 +1,19 @@
+<div class="flex flex-col gap-2 items-center pt-4">
+{{ range $j, $row := $.Items }}
+{{ if $row.Active }}
+  <div class="m-1 rounded-lg bg-slate-300">
+{{ else }}
+  <div class="">
+{{ end }}
+    <button id="{{$row.Name}}" type="button" class="p-1" hx-get="/menu/{{$row.Name}}" hx-trigger="click" hx-target="this" hx-swap="none">
+    {{noescape $row.Svg}}
+    </button>
+<script>
+  tippy('#{{$row.Name}}', {
+    content: '{{$row.Title}}',
+    placement: 'right-start',
+  });
+</script>
+  </div>
+{{ end }}
+</div>

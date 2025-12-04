@@ -19,15 +19,18 @@ const (
 	StatusBar   Model = "statusbar"
 	NoPage      Model = "nopage"
 	Header      Model = "header"
+	Menu        Model = "menu"
 	Home        Model = "home"
 	Footer      Model = "footer"
 	Index       Model = "index"
 	KMState     Model = "kmstate"
+	InnFias     Model = "innfias"
+	Money       Model = "money"
 )
 
 func IsValidModel(s string) bool {
 	switch Model(s) {
-	case Application, TrueClient, StatusBar, NoPage, Header, Footer, Index, Home, KMState:
+	case Application, TrueClient, StatusBar, NoPage, Header, Footer, Index, Home, KMState, Menu, InnFias, Money:
 		return true
 	default:
 		return false
@@ -48,6 +51,8 @@ func ModelFromString(s string) (Model, error) {
 		return NoPage, nil
 	case string(Header):
 		return Header, nil
+	case string(Menu):
+		return Menu, nil
 	case string(Footer):
 		return Footer, nil
 	case string(Home):
@@ -56,6 +61,10 @@ func ModelFromString(s string) (Model, error) {
 		return Index, nil
 	case string(KMState):
 		return KMState, nil
+	case string(InnFias):
+		return InnFias, nil
+	case string(Money):
+		return Money, nil
 	}
 	return "", fmt.Errorf("%s ошибочная модель domain.Model", s)
 }

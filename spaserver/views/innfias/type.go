@@ -1,9 +1,8 @@
-package home
+package innfias
 
 import (
 	_ "embed"
 	"korrectkm/domain"
-	"korrectkm/spaserver/views"
 	"strings"
 
 	"github.com/donseba/go-htmx"
@@ -29,17 +28,17 @@ type page struct {
 	defaultTemplate string
 	currentTemplate string
 	title           string
+	description     string
 }
-
-var _ views.IView = (*page)(nil)
 
 func New(app IServer) *page {
 	t := &page{
 		IServer:         app,
-		modelType:       domain.Home,
+		modelType:       domain.InnFias,
 		defaultTemplate: "index",
 		currentTemplate: "index",
-		title:           "домашняя страница",
+		title:           "Инфо по ИНН",
+		description:     "Инфо по ИНН",
 	}
 	return t
 }
@@ -75,7 +74,7 @@ func (p *page) Title() string {
 	return p.title
 }
 
-//go:embed home.svg
+//go:embed svg.svg
 var svg string
 
 // иконка для меню
@@ -85,5 +84,5 @@ func (p *page) Svg() string {
 
 // описание вида для меню
 func (p *page) Desc() string {
-	return "домой"
+	return p.description
 }
