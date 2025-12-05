@@ -1,4 +1,4 @@
-package header
+package menu
 
 import (
 	"fmt"
@@ -9,25 +9,23 @@ import (
 )
 
 func (t *page) Routes() error {
-	t.Echo().GET("/header", t.Index)
-	// t.Echo().GET("/header/modal", t.modal)
-	// t.Echo().GET("/header/:page", t.pager)
+	t.Echo().GET("/menu", t.Index)
+	t.Echo().GET("/menu/:page", t.pager)
 	return nil
 }
 
 func (t *page) Index(c echo.Context) error {
-	// data, err := t.PageData()
-	// if err != nil {
-	// 	return t.ServerError(c, err)
-	// }
-	// if err := c.Render(http.StatusOK, t.Name(), map[string]interface{}{
-	// 	"template": "content",
-	// 	"data":     data,
-	// }); err != nil {
-	// 	return t.ServerError(c, err)
-	// }
-	// return nil
-	return c.String(200, "")
+	data, err := t.PageData()
+	if err != nil {
+		return t.ServerError(c, err)
+	}
+	if err := c.Render(http.StatusOK, t.Name(), map[string]interface{}{
+		"template": "content",
+		"data":     data,
+	}); err != nil {
+		return t.ServerError(c, err)
+	}
+	return nil
 }
 
 func (t *page) modal(c echo.Context) error {

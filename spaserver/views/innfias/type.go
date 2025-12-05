@@ -1,4 +1,4 @@
-package kmstate
+package innfias
 
 import (
 	_ "embed"
@@ -16,8 +16,6 @@ type IServer interface {
 	Echo() *echo.Echo
 	ServerError(c echo.Context, err error) error
 	SetActivePage(domain.Model)
-	// msg сообщение
-	// msgType тип сообщения error info spaserver\templates\index\flush.html
 	SetFlush(string, string)
 	RenderString(name string, data interface{}) (str string, err error)
 	Htmx() *htmx.HTMX
@@ -36,11 +34,11 @@ type page struct {
 func New(app IServer) *page {
 	t := &page{
 		IServer:         app,
-		modelType:       domain.KMState,
+		modelType:       domain.InnFias,
 		defaultTemplate: "index",
 		currentTemplate: "index",
-		title:           "Опрос состояния КМ",
-		description:     "Опрос состояния КМ",
+		title:           "Инфо по ИНН",
+		description:     "Инфо по ИНН",
 	}
 	return t
 }

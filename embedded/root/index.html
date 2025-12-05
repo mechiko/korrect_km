@@ -49,29 +49,35 @@
     _="on htmx:responseError log 'A error occurred' end
     on keydown[key=='Escape'] log 'ESC pressed' then if modal is not null remove modal end then trigger closeModalJson end
     ">
-  <div class="grid grid-rows-[auto_1fr_auto] h-full">
-      <div id="ind1" class="pointer-events-none absolute w-full flex justify-center htmx-indicator">
-        <div class="mx-auto">
-          <img class="" src="/assets/images/bars.svg" alt="loading" style="width: 36px; height: 24px">
-        </div>
-      </div>
-      <header>
+<div class="ml-0.5 grid h-screen grid-cols-[auto_1fr]">
+  <div id="sidebar" class="min-w-14 rounded-xl border-2 border-slate-200">
+    <div id="menu" hx-get="/menu" hx-trigger="load" hx-target="#menu" hx-swap="outerHTML"></div>
+  </div>
+  <div class="">
+    <div class="ml-1 grid h-full grid-rows-[auto_1fr_auto] bg-white rounded-xl border-2 border-slate-200">
+      <div id="page-header" class="bg-slate-100">
         <div id="header" hx-get="/header" hx-trigger="load" hx-target="#header" hx-swap="outerHTML"></div>
+      </div>
+      <div class="relative overflow-scroll bg-slate-50">
         <!-- индикатор загрузки действия запроса -->
-      </header>
-      <main class="h-full bg-slate-50 overflow-scroll">
+        <div id="ind1" class="z-99 absolute w-full flex justify-center htmx-indicator">
+          <div class="mx-auto">
+            <img class="" src="/assets/images/bars.svg" alt="loading" style="width: 36px; height: 24px">
+          </div>
+        </div>
         <!-- когда срабатывает тут отображается сообщение errormsg -->
         <div id="alert" class="pl-4 hidden"></div>
         <div id="sse_error"></div>
         <!-- сюда загружается страница по умолчанию при старте, при обновлении здесь текущая страница spaserver.activePage -->
-        <div id="app" hx-get="/page" hx-trigger="load" hx-target="#app" hx-swap="innerHTML"></div>
-      </main>
-      <footer>
+        <div id="app" hx-get="/page" hx-trigger="load" hx-target="#app" hx-swap="innerHTML" class="m-2"></div>
+      </div>
+      <div id="page-footer" class="bg-slate-100">
         <div id="footer" hx-get="/footer" hx-trigger="load" hx-target="#footer" hx-swap="outerHTML"></div>
-      </footer>
+      </div>
+    </div>
   </div>
-
-  <!-- <script>hljs.highlightAll();</script> -->
+</div>
+<!-- <script>hljs.highlightAll();</script> -->
   <script> 
     htmx.on("htmx:sendError", function(evt) {
       console.log("Send ERROR :", evt.detail);

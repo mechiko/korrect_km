@@ -93,3 +93,10 @@ body {
 .htmx-request.htmx-indicator{
     opacity:1
 }
+.tippy-box {
+  background-color: #fff;
+  color: #000;
+  border: 1px solid transparent;
+  border-color: #000;
+  border-radius: 5;
+}
