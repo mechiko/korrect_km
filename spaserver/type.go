@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"korrectkm/domain"
+	"korrectkm/embedded"
 	"korrectkm/spaserver/templates"
 	"korrectkm/spaserver/views"
 	"korrectkm/sse"
@@ -17,7 +18,6 @@ import (
 	"github.com/karagenc/zap4echo"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"go.uber.org/zap"
 )
 
@@ -70,11 +70,11 @@ func New(a domain.Apper, eLogger *zap.Logger, port string, debug bool) *Server {
 		AllowCredentials: true,
 		AllowMethods:     []string{echo.OPTIONS, echo.GET, echo.HEAD, echo.PUT, echo.PATCH, echo.POST, echo.DELETE},
 	}))
-	// e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
-	// 	HTML5:      true,
-	// 	Root:       "root", // because files are located in `root` directory
-	// 	Filesystem: http.FS(embeded.Root),
-	// }))
+	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
+		HTML5:      true,
+		Root:       "root", // because files are located in `root` directory
+		Filesystem: http.FS(embedded.Root),
+	}))
 	// наследует родительские middleware
 	private := e.Group("/admin")
 	ss := &Server{
@@ -154,7 +154,8 @@ func (s *Server) ActivePage() domain.Model {
 
 // устанавливает заголовок окна используется в Render
 func (s *Server) SetTitlePage(title string) {
-	runtime.WindowSetTitle(s.Ctx(), title)
+	window := s.Wails().Window.Current()
+	window.SetTitle(title)
 }
 
 // используется в меню
@@ -178,9 +179,8 @@ func (s *Server) Reload() {
 	if s.streamInfo != nil && s.streamInfo.Eventlog != nil {
 		s.streamInfo.Eventlog.Clear()
 	}
-	if ctx := s.Ctx(); ctx != nil {
-		runtime.WindowReload(ctx)
-	}
+	window := s.Wails().Window.Current()
+	window.Reload()
 }
 
 func (s *Server) Htmx() *htmx.HTMX {

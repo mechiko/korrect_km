@@ -10,26 +10,23 @@ import (
 	"korrectkm/config"
 	"korrectkm/domain"
 	"korrectkm/domain/models/modeltrueclient"
-	"korrectkm/embedded"
 	"korrectkm/guiconnect"
 	"korrectkm/reductor"
 	"korrectkm/repo"
 	"korrectkm/spaserver"
 	"korrectkm/trueclient"
 	"korrectkm/zaplog"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/labstack/echo/v4"
 	"github.com/mechiko/dbscan"
 	"github.com/mechiko/utility"
+	"github.com/wailsapp/wails/v3/pkg/application"
+	"github.com/wailsapp/wails/v3/pkg/events"
 	"go.uber.org/zap"
-
-	"github.com/wailsapp/wails/v2"
-	"github.com/wailsapp/wails/v2/pkg/logger"
-	"github.com/wailsapp/wails/v2/pkg/options"
-	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
-	"github.com/wailsapp/wails/v2/pkg/options/windows"
 
 	"golang.org/x/sync/errgroup"
 )
@@ -228,59 +225,84 @@ func main() {
 	// запускаем сервер эхо через него SSE работает для флэш сообщений
 	httpServer.Start()
 
-	if err := wails.Run(&options.App{
-		Title:     "Утилиты для ЧЗ и А3",
-		Width:     1040,
-		Height:    768,
-		MinWidth:  200,
-		MinHeight: 200,
-		// MaxWidth:      1280,
-		// MaxHeight:     800,
-		DisableResize: false,
-		Fullscreen:    false,
-		Frameless:     false,
-		// CSSDragProperty:   "windows",
-		// CSSDragValue:      "1",
-		StartHidden:       false,
-		HideWindowOnClose: false,
-		BackgroundColour:  &options.RGBA{R: 255, G: 255, B: 255, A: 255},
-		AssetServer: &assetserver.Options{
-			Assets: embedded.Root,
-			// Middleware: func(next http.Handler) http.Handler {
-			// 	// устанавливаем обработку not found на предлагаемую по умолчанию wails
-			// 	// это произойдет когда наш роутер не найдет нужного
-			// 	httpServer.Echo().RouteNotFound("/", func(c echo.Context) error {
-			// 		// return c.NoContent(204)
-			// 		return c.String(200, "not found")
-			// 	})
-			// 	return httpServer.Handler()
-			// },
-			Handler: httpServer.Handler(),
+	appw := application.New(application.Options{
+		Name: "KorrectKM",
+		Assets: application.AssetOptions{
+			Handler:    httpServer.Echo(),
+			Middleware: EchoMiddleware(httpServer.Echo()),
 		},
-		// Menu:             webApp.ApplicationMenu(),
-		EnableDefaultContextMenu: true,
-		Logger:                   nil,
-		LogLevel:                 logger.INFO,
-		OnStartup:                app.Startup,
-		// OnDomReady:               httpServer.Publish,
-		OnBeforeClose:    app.BeforeClose,
-		OnShutdown:       app.Shutdown,
-		WindowStartState: options.Normal,
-		// Windows platform specific options
-		Windows: &windows.Options{
-			WebviewIsTransparent: false,
-			WindowIsTranslucent:  false,
-			DisableWindowIcon:    false,
-			// DisableFramelessWindowDecorations: false,
-			WebviewUserDataPath: "",
-			ZoomFactor:          1.0,
-		},
-		Debug: options.Debug{
-			OpenInspectorOnStartup: true,
-		},
-	}); err != nil {
-		loger.Errorf("%s wails error %s", modError, err.Error())
+		Logger:  nil,
+		Windows: application.WindowsOptions{},
+	})
+	app.SetWails(appw)
+	wv := appw.Window.NewWithOptions(application.WebviewWindowOptions{
+		Title:  "Инструменты",
+		Width:  1024,
+		Height: 768,
+	})
+	wv.OpenDevTools()
+	appw.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(event *application.ApplicationEvent) {
+		wv.OpenDevTools()
+	})
+
+	err = appw.Run()
+	if err != nil {
+		panic(err)
 	}
+
+	// if err := wails.Run(&options.App{
+	// 	Title:     "Утилиты для ЧЗ и А3",
+	// 	Width:     1040,
+	// 	Height:    768,
+	// 	MinWidth:  200,
+	// 	MinHeight: 200,
+	// 	// MaxWidth:      1280,
+	// 	// MaxHeight:     800,
+	// 	DisableResize: false,
+	// 	Fullscreen:    false,
+	// 	Frameless:     false,
+	// 	// CSSDragProperty:   "windows",
+	// 	// CSSDragValue:      "1",
+	// 	StartHidden:       false,
+	// 	HideWindowOnClose: false,
+	// 	BackgroundColour:  &options.RGBA{R: 255, G: 255, B: 255, A: 255},
+	// 	AssetServer: &assetserver.Options{
+	// 		Assets: embedded.Root,
+	// 		// Middleware: func(next http.Handler) http.Handler {
+	// 		// 	// устанавливаем обработку not found на предлагаемую по умолчанию wails
+	// 		// 	// это произойдет когда наш роутер не найдет нужного
+	// 		// 	httpServer.Echo().RouteNotFound("/", func(c echo.Context) error {
+	// 		// 		// return c.NoContent(204)
+	// 		// 		return c.String(200, "not found")
+	// 		// 	})
+	// 		// 	return httpServer.Handler()
+	// 		// },
+	// 		Handler: httpServer.Handler(),
+	// 	},
+	// 	// Menu:             webApp.ApplicationMenu(),
+	// 	EnableDefaultContextMenu: true,
+	// 	Logger:                   nil,
+	// 	LogLevel:                 logger.INFO,
+	// 	OnStartup:                app.Startup,
+	// 	// OnDomReady:               httpServer.Publish,
+	// 	OnBeforeClose:    app.BeforeClose,
+	// 	OnShutdown:       app.Shutdown,
+	// 	WindowStartState: options.Normal,
+	// 	// Windows platform specific options
+	// 	Windows: &windows.Options{
+	// 		WebviewIsTransparent: false,
+	// 		WindowIsTranslucent:  false,
+	// 		DisableWindowIcon:    false,
+	// 		// DisableFramelessWindowDecorations: false,
+	// 		WebviewUserDataPath: "",
+	// 		ZoomFactor:          1.0,
+	// 	},
+	// 	Debug: options.Debug{
+	// 		OpenInspectorOnStartup: true,
+	// 	},
+	// }); err != nil {
+	// 	loger.Errorf("%s wails error %s", modError, err.Error())
+	// }
 	cancel()
 	// ожидание завершения всех в группе
 	if err := group.Wait(); err != nil {
@@ -289,4 +311,45 @@ func main() {
 		fmt.Println("game over!")
 	}
 	zl.Shutdown()
+}
+
+// GinMiddleware creates a middleware that passes requests to Gin if they're not handled by Wails
+func EchoMiddleware(echoEngine *echo.Echo) application.Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Let Wails handle the `/wails` route
+			if strings.HasPrefix(r.URL.Path, "/wails") {
+				next.ServeHTTP(w, r)
+				return
+			}
+			// Let Gin handle everything else
+			echoEngine.ServeHTTP(w, r)
+		})
+	}
+}
+
+func setupDevelopmentMenu(app *application.App) {
+	if !app.Env.Info().Debug {
+		return // Only show in debug mode
+	}
+	menu := app.Menu.New()
+	devMenu := menu.AddSubmenu("Development")
+
+	devMenu.Add("Open DevTools").OnClick(func(ctx *application.Context) {
+		// This would open browser devtools if available
+		window := app.Window.Current()
+		if window != nil {
+			window.OpenDevTools()
+		}
+	})
+
+	devMenu.Add("View Source").OnClick(func(ctx *application.Context) {
+		// Open source code repository
+		app.Browser.OpenURL("https://github.com/youruser/yourapp")
+	})
+
+	devMenu.Add("API Documentation").OnClick(func(ctx *application.Context) {
+		// Open local API docs
+		app.Browser.OpenURL("http://localhost:8080/docs")
+	})
 }

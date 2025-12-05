@@ -1,4 +1,4 @@
-package index
+package root
 
 import (
 	"korrectkm/domain"
@@ -26,7 +26,7 @@ type page struct {
 func New(app IApp) *page {
 	t := &page{
 		IApp:            app,
-		modelType:       domain.Index,
+		modelType:       domain.Root,
 		defaultTemplate: "content",
 		currentTemplate: "content",
 	}

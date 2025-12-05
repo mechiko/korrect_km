@@ -14,10 +14,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/wailsapp/wails/v3/pkg/application"
 	"go.uber.org/zap"
 )
 
 type app struct {
+	*application.App
 	ctx       context.Context
 	uuid      string // идентификатор для уникальности формы
 	config    *config.Config
@@ -233,4 +235,12 @@ func (a *app) DbSelfPath() string {
 
 func (a *app) SetDbSelfPath(path string) {
 	a.dbSelfPath = path
+}
+
+func (a *app) Wails() *application.App {
+	return a.App
+}
+
+func (a *app) SetWails(appw *application.App) {
+	a.App = appw
 }

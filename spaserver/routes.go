@@ -5,11 +5,11 @@ import (
 	"korrectkm/spaserver/views/footer"
 	"korrectkm/spaserver/views/header"
 	"korrectkm/spaserver/views/home"
-	"korrectkm/spaserver/views/index"
 	"korrectkm/spaserver/views/innfias"
 	"korrectkm/spaserver/views/kmstate"
 	"korrectkm/spaserver/views/menu"
 	"korrectkm/spaserver/views/money"
+	"korrectkm/spaserver/views/root"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -18,6 +18,7 @@ import (
 // маршрутизация приложения
 func (s *Server) Routes() http.Handler {
 	s.loadViews()
+	s.server.GET("/", s.Index)           // переход/загрузка на текущую страницу
 	s.server.GET("/page", s.Page)        // переход/загрузка на текущую страницу
 	s.server.GET("/page/reset", s.Reset) // переход/загрузка на текущую страницу
 	s.server.GET("/sse", s.Sse)
@@ -66,7 +67,7 @@ func (s *Server) loadViews() {
 	view4.Routes()
 	view4.InitData(s)
 	// view index
-	view5 := index.New(s)
+	view5 := root.New(s)
 	s.views[view5.ModelType()] = view5
 	// menu
 	view6 := menu.New(s)
@@ -85,4 +86,14 @@ func (s *Server) loadViews() {
 	// header инициализируем последним нужны все виды сервера в списке
 	view1.InitData(s)
 	view6.InitData(s)
+}
+
+func (s *Server) Index(c echo.Context) error {
+	if err := c.Render(http.StatusOK, "root", map[string]interface{}{
+		"template": "index",
+		"data":     &struct{}{},
+	}); err != nil {
+		return s.ServerError(c, err)
+	}
+	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"korrectkm/config"
 
+	"github.com/wailsapp/wails/v3/pkg/application"
 	"go.uber.org/zap"
 )
 
@@ -18,4 +19,5 @@ type Apper interface {
 	Pwd() string
 	BaseUrl() string
 	Ctx() context.Context
+	Wails() *application.App
 }

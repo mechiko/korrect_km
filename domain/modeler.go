@@ -22,7 +22,7 @@ const (
 	Menu        Model = "menu"
 	Home        Model = "home"
 	Footer      Model = "footer"
-	Index       Model = "index"
+	Root        Model = "root"
 	KMState     Model = "kmstate"
 	InnFias     Model = "innfias"
 	Money       Model = "money"
@@ -30,7 +30,7 @@ const (
 
 func IsValidModel(s string) bool {
 	switch Model(s) {
-	case Application, TrueClient, StatusBar, NoPage, Header, Footer, Index, Home, KMState, Menu, InnFias, Money:
+	case Application, TrueClient, StatusBar, NoPage, Header, Footer, Root, Home, KMState, Menu, InnFias, Money:
 		return true
 	default:
 		return false
@@ -57,8 +57,8 @@ func ModelFromString(s string) (Model, error) {
 		return Footer, nil
 	case string(Home):
 		return Home, nil
-	case string(Index):
-		return Index, nil
+	case string(Root):
+		return Root, nil
 	case string(KMState):
 		return KMState, nil
 	case string(InnFias):
