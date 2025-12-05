@@ -15,7 +15,8 @@ import (
 // маршрутизация приложения
 func (s *Server) Routes() http.Handler {
 	s.loadViews()
-	s.server.GET("/page", s.Page) // переход/загрузка на текущую страницу
+	s.server.GET("/page", s.Page)        // переход/загрузка на текущую страницу
+	s.server.GET("/page/reset", s.Reset) // переход/загрузка на текущую страницу
 	s.server.GET("/sse", s.Sse)
 	return s.server
 }
@@ -28,6 +29,16 @@ func (s *Server) Page(c echo.Context) error {
 	}
 	view := s.views[ap]
 	return view.Index(c)
+}
+
+// вызывает рендеринг по имени страницы вида в s.activePage
+func (s *Server) Reset(c echo.Context) error {
+	ap := s.activePage
+	if _, ok := s.views[ap]; !ok {
+		return s.ServerError(c, fmt.Errorf("not found active page %s", ap))
+	}
+	view := s.views[ap]
+	return view.Reset(c)
 }
 
 // загружаем все виды

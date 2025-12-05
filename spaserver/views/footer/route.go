@@ -25,3 +25,7 @@ func (t *page) Index(c echo.Context) error {
 	}
 	return nil
 }
+
+func (t *page) Reset(c echo.Context) error {
+	return nil
+}

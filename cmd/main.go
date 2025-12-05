@@ -8,12 +8,14 @@ import (
 	"korrectkm/app"
 	"korrectkm/checkdbg"
 	"korrectkm/config"
+	"korrectkm/domain"
 	"korrectkm/domain/models/modeltrueclient"
 	"korrectkm/embedded"
 	"korrectkm/guiconnect"
 	"korrectkm/reductor"
 	"korrectkm/repo"
 	"korrectkm/spaserver"
+	"korrectkm/trueclient"
 	"korrectkm/zaplog"
 	"os"
 	"path/filepath"
@@ -206,14 +208,23 @@ func main() {
 
 	// вызываем окно подключения к ЧЗ
 	if !*dontconnect {
-		err = guiconnect.StartDialog(app, modelTcl)
+		_, err := trueclient.NewFromModelSingle(app, modelTcl)
 		if err != nil {
-			errProcessExit("Ошибка подключения к ЧЗ", err)
+			// если ошибка подключения вызываем редактор
+			err = guiconnect.StartDialog(app, modelTcl)
+			if err != nil {
+				errProcessExit("Ошибка подключения к ЧЗ", err)
+			}
 		}
+		// err = guiconnect.StartDialog(app, modelTcl)
+		// if err != nil {
+		// 	errProcessExit("Ошибка подключения к ЧЗ", err)
+		// }
 	}
 
 	// тут инициализируются так же модели для всех видов
 	httpServer := spaserver.New(app, echoLogger, port, true)
+	httpServer.SetActivePage(domain.KMState)
 	// запускаем сервер эхо через него SSE работает для флэш сообщений
 	httpServer.Start()
 

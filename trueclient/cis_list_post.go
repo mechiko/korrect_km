@@ -8,7 +8,6 @@ import (
 	"net/http"
 )
 
-// Host:   "markirovka.sandbox.crptech.ru"
 func (t *trueClient) CisesListPost(target interface{}, cises []string) (string, error) {
 	var u = t.urlGIS
 	u.Path = `/api/v3/true-api/cises/short/list`
@@ -25,9 +24,7 @@ func (t *trueClient) CisesListPost(target interface{}, cises []string) (string, 
 	req.Header.Add("Accept", accept)
 	req.Header.Add("Accept-Charset", "utf-8")
 	req.Header.Add("Content-Type", contentType)
-	// req.Header.Add("clientToken", t.tokenGis)
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", t.tokenGis))
-	// req.Header.Add("X-Signature", signBody)
 
 	resp, err := t.httpClient.Do(req)
 	if err != nil {
@@ -35,11 +32,14 @@ func (t *trueClient) CisesListPost(target interface{}, cises []string) (string, 
 	}
 	defer resp.Body.Close()
 	buf, _ := io.ReadAll(resp.Body)
+	// t.Logger().Debugf("json_post:[%s]", buf)
 	if resp.StatusCode != 200 {
-		json.NewDecoder(bytes.NewBuffer(buf)).Decode(target)
-		return string(buf), fmt.Errorf("status %d", resp.StatusCode)
+		// 404 код не найден возвращает список всех кодов со статусом
+		if resp.StatusCode != 404 {
+			json.NewDecoder(bytes.NewBuffer(buf)).Decode(target)
+			return string(buf), fmt.Errorf("ошибка запроса %d", resp.StatusCode)
+		}
 	}
 	// потоковый Unmarshal
-	t.Logger().Debugf("json_post:[%s]", buf)
 	return string(buf), json.NewDecoder(bytes.NewBuffer(buf)).Decode(target)
 }

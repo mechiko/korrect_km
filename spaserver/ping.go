@@ -10,16 +10,12 @@ import (
 
 // при запуске программы первый пинг блокирующий для проверки
 func (s *Server) PingSetup() error {
-	mdl, err := reductor.Instance().Model(domain.TrueClient)
+	mdl, err := reductor.Model[*modeltrueclient.TrueClientModel](domain.TrueClient)
 	if err != nil {
 		return fmt.Errorf("failed to create trueclient: %w", err)
 	}
-	model, ok := mdl.(modeltrueclient.TrueClientModel)
-	if !ok {
-		return fmt.Errorf("объект редуктора не соответствует trueclient.TrueClientModel")
-	}
 
-	tcl, err := trueclient.NewFromModelSingle(s, &model)
+	tcl, err := trueclient.NewFromModelSingle(s, mdl)
 	if err != nil {
 		return fmt.Errorf("failed to create trueclient: %w", err)
 	}
@@ -29,6 +25,6 @@ func (s *Server) PingSetup() error {
 		return fmt.Errorf("ping failed: %w", err)
 	}
 
-	model.PingSuz = png
-	return reductor.SetModel(&model, false)
+	mdl.PingSuz = png
+	return reductor.SetModel(mdl, false)
 }

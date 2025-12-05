@@ -1,0 +1,19 @@
+<div class="m-1 p-2 flex items-center gap-2 bg-white shadow-lg rounded">
+  <p class="p-1 font-bold text-gray-700">Загружено КМ:</p>
+  <table class="table-auto border-collapse border border-gray-700">
+    <tr>
+      {{ template "info_cis" . }}
+    </tr>
+  </table>
+  <button
+    class="focus:shadow-outline rounded-md border-2 border-gray-500 px-1 py-0.5 font-medium text-gray-900 hover:bg-gray-700 hover:text-white focus:outline-none"
+    hx-indicator="#ind1"  hx-get="/kmstate/search" hx-trigger="click" hx-target="#page" hx-swap="innerHTML">Обработка</button>
+  <button
+    class="focus:shadow-outline rounded-md border-2 border-gray-500 px-1 py-0.5 font-medium text-gray-900 hover:bg-gray-700 hover:text-white focus:outline-none"
+    hx-indicator="#ind1" hx-get="/kmstate/reset" hx-trigger="click" hx-target="#page" hx-swap="innerHTML" hx-indicator="#ind1">Сброс</button>
+</div>
+{{if $.IsProgress}}
+{{ template "progress" . }}
+{{else}}
+<div id="progress"></div>
+{{end}}

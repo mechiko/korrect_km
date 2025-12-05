@@ -6,6 +6,7 @@ import (
 )
 
 type MenuModel struct {
+	IApp
 	Title string
 	Items MenuItemSlice
 	model domain.Model
@@ -24,8 +25,9 @@ type MenuItemSlice []*MenuItem
 var _ domain.Modeler = (*MenuModel)(nil)
 
 // создаем модель считываем ее состояние и возвращаем указатель
-func NewModel(app domain.Apper) (*MenuModel, error) {
+func NewModel(app IApp) (*MenuModel, error) {
 	model := &MenuModel{
+		IApp:  app,
 		model: domain.Header,
 		Title: "Меню",
 		Items: make(MenuItemSlice, 0),
@@ -58,4 +60,23 @@ func (a *MenuModel) Model() domain.Model {
 
 func (a *MenuModel) Save(_ domain.Apper) (err error) {
 	return nil
+}
+
+func (a *MenuModel) SyncActive(active string) error {
+	for _, m := range a.Items {
+		m.Active = false
+		if m.Name == active {
+			m.Active = true
+		}
+	}
+	return nil
+}
+
+func (a *MenuModel) ActiveTitle() string {
+	for _, m := range a.Items {
+		if m.Active {
+			return m.Desc
+		}
+	}
+	return ""
 }

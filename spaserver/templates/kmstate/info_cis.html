@@ -1,0 +1,14 @@
+{{if $.File}}
+<td class="m-1 p-1 border border-gray-300">Файл: {{base $.File}}</td>
+{{end}}
+{{if $.OrderId}}
+<td class="m-1 p-1 border border-gray-300">Заказ: {{$.OrderId}}</td>
+{{end}}
+{{if $.UtilisationId}}
+<td class="m-1 p-1 border border-gray-300">Нанесение: {{$.UtilisationId}}</td>
+{{end}}
+{{if $.AtkId}}
+<td class="m-1 p-1 border border-gray-300">АТК: {{$.AtkId}}</td>
+{{end}}
+<td class="m-1 p-1 border border-gray-300">{{ len $.CisIn }}</td>
+<td class="m-1 p-1 border border-gray-300">KM</td>

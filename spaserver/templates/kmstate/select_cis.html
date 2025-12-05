@@ -1,0 +1,41 @@
+<div id="selectfile" class="px-2 pb-2 pt-2 flex gap-4 bg-white text-base shadow-lg">
+  <span class="font-medium text-gray-900 dark:text-gray-300">Загрузить из файла:</span>
+  <button 
+    class="focus:shadow-outline rounded-md border-2 border-gray-500 px-1 py-0.5 font-medium text-gray-900 hover:bg-gray-700 hover:text-white focus:outline-none" 
+    hx-indicator="#ind1" hx-get="/kmstate/selectfile" hx-trigger="click" hx-target="#page" hx-swap="innerHTML">
+    Выбрать файл
+  </button>
+</div>
+{{if $.IsTrueZnakA3}}
+<div class="bg-white shadow-lg rounded px-2 pt-2 pb-2 mb-2">
+  <span class="text-base">Взять из АлкоХелп 3:</span>
+  <form class="p-0 m-1" hx-post='/kmstate/orderload' hx-target="#page" hx-swap="innerHTML">
+    <input value="" 
+      class="text-sm border border-gray-300 rounded-sm py-1 px-1 focus:border-blue-500 focus:outline-none" 
+      type="text" placeholder="номер заказа" name='orderid'
+    />
+    <input id="sbmtOrder" type="submit" value="Загрузить" 
+      class="border-2 border-gray-500 hover:bg-gray-700 text-gray-700 hover:text-white py-0.5 px-1 rounded focus:outline-none focus:shadow-outline"
+    />
+  </form>
+  <form class="p-0 m-1" hx-post='/kmstate/utilload' hx-target="#page" hx-swap="innerHTML">
+    <input value="" 
+      class="text-sm border border-gray-300 rounded-sm py-1 px-1 focus:border-blue-500 focus:outline-none" 
+      type="text" placeholder="номер отчета нанесения" name='utilid'
+    />
+    <input id="sbmtUtil" type="submit" value="Загрузить"  
+      class="border-2 border-gray-500 hover:bg-gray-700 text-gray-700 hover:text-white py-0.5 px-1 rounded focus:outline-none focus:shadow-outline"
+    />
+  </form>
+  <form class="p-0 m-1" hx-post='/kmstate/atkload' hx-target="#page" hx-swap="innerHTML">
+    <input value="" 
+      class="text-sm border border-gray-300 rounded-sm py-1 px-1 focus:border-blue-500 focus:outline-none" 
+      type="text" placeholder="значение АТК" name='atk'
+    />
+    <input id="sbmtAtk" type="submit" value="Загрузить"
+      class="border-2 border-gray-500 hover:bg-gray-700 text-gray-700 hover:text-white py-0.5 px-1 rounded focus:outline-none focus:shadow-outline"
+    />
+  </form>
+  <div id="finded"></div>
+</div>
+{{end}}

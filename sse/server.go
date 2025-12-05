@@ -43,7 +43,7 @@ func New() *Server {
 	return &Server{
 		BufferSize: DefaultBufferSize,
 		AutoStream: false,
-		AutoReplay: true,
+		AutoReplay: false,
 		streams:    make(map[string]*Stream),
 		Headers:    map[string]string{},
 	}

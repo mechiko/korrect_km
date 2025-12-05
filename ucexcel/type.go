@@ -1,24 +1,16 @@
 package ucexcel
 
 import (
-	"korrectkm/config"
 	"korrectkm/domain"
 	"korrectkm/ucexcel/address"
-	"time"
 
 	"github.com/xuri/excelize/v2"
 )
 
 const modError = "pkg:excel"
 
-type Apper interface {
-	Options() *config.Configuration
-	StartDate() time.Time
-	EndDate() time.Time
-}
-
 type ucexcel struct {
-	Apper
+	domain.Apper
 	layout             string
 	template           string
 	nameFile           string
@@ -36,12 +28,12 @@ type ucexcel struct {
 	celStyle           excelize.Style
 }
 
-func New(app Apper, layout string, template string, nameFile string) *ucexcel {
+func New(app domain.Apper, layout string, template string, nameFile string) *ucexcel {
 	if layout == "" {
 		layout = app.Options().Layouts.TimeLayoutDay
 	}
 	excel := &ucexcel{
-		// Apper:    app,
+		Apper:    app,
 		layout:   layout,
 		template: template,
 		nameFile: nameFile,

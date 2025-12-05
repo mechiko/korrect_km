@@ -15,6 +15,8 @@ type IServer interface {
 	Echo() *echo.Echo
 	ServerError(c echo.Context, err error) error
 	SetActivePage(domain.Model)
+	// msg сообщение
+	// msgType тип сообщения error info spaserver\templates\index\flush.html
 	SetFlush(string, string)
 	RenderString(name string, data interface{}) (str string, err error)
 	Htmx() *htmx.HTMX

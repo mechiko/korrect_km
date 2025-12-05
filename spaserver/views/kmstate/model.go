@@ -9,29 +9,22 @@ import (
 	"github.com/mechiko/dbscan"
 )
 
-type Cis struct {
-	Cis      string
-	Status   string
-	StatusEx string
-}
-
-type CisSlice []*Cis
-
 type KmStateModel struct {
 	model               domain.Model
 	Title               string
-	State               int
 	File                string
-	CisIn               []string // список CIS для запроса
-	Chunks              int      // куски
-	CisOut              CisSlice // список CIS полученных
+	CisIn               []string        // список CIS для запроса
+	Chunks              int             // куски
+	CisOut              domain.CisSlice // список CIS полученных
 	CisStatus           map[string]map[string]int
 	ExcelChunkSize      int      // размер куска для выгрузки в файл ексель
 	IsConnectedTrueZnak bool     // есть подключение к ЧЗ
 	IsTrueZnakA3        bool     // подключена БД ЧЗ А3
+	AtkId               int      // номер ATK в ЧЗ А3
 	OrderId             int      // номер заказа в ЧЗ А3
 	UtilisationId       int      // номер отчета нанесения в ЧЗ А3
 	Progress            int      // прогресс опроса
+	IsProgress          bool     // true если идет процесс загрузки для отображения прогресса
 	Errors              []string // массив ошибок
 	MapCisStatusDict    map[string]string
 	MapCisStatusExDict  map[string]string
@@ -45,6 +38,7 @@ func NewModel(app domain.Apper) (*KmStateModel, error) {
 		model:               domain.KMState,
 		Title:               "Состояния КМ",
 		IsConnectedTrueZnak: true, // подключаемся теперь при запуске приложения
+		ExcelChunkSize:      30000,
 	}
 	if err := model.ReadState(app); err != nil {
 		return nil, fmt.Errorf("model %v read state %w", model.model, err)

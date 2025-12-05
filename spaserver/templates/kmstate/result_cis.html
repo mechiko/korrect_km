@@ -1,0 +1,35 @@
+{{if $.CisStatus}}
+  {{ template "chunk" . }}
+  <div class="m-1 p-2 bg-white shadow-lg rounded">
+    <span class="p-1 font-bold text-gray-700">Распределение КМ по статусам</span>
+    <table class="table-auto w-2/3 ml-2 mt-1">
+      <col style="width:40%">
+      <col style="width:40%">
+      <col style="width:20%">
+      <col />
+      <thead style="font-size: 12px;">
+        <tr>
+          <th>Статус</th>
+          <th>Доп Статус</th>
+          <th>Кол-во</th>
+        </tr>
+      </thead>
+      <tbody>
+      {{range $cim, $cisMap := $.CisStatus }}
+      {{range $ci, $cisCount := $cisMap }}
+      <tr class="text-base">
+        <td class="pl-1 border">{{if (index $.MapCisStatusDict $cim)}}{{index $.MapCisStatusDict $cim}}{{else}}{{$cim}}{{end}}</td>
+        <td class="pl-1 border">{{if (index $.MapCisStatusExDict $ci)}}{{index $.MapCisStatusExDict $ci}}{{else}}{{$ci}}{{end}}</td>
+        <td class="text-base pl-1 border">{{$cisCount}}</td>
+        <td class="text-base pl-1">
+          <button class="focus:shadow-outline rounded-md border-2 border-gray-500 px-1 py-0.5 font-medium text-gray-900 hover:bg-gray-700 hover:text-white focus:outline-none" 
+            hx-indicator="#ind1" hx-get="/kmstate/excel/{{$cim}}/{{$ci}}" hx-trigger="click" hx-target="#excel-result" hx-swap="innerHTML">Выгрузить</button>
+        </td>
+      </tr>
+      {{end}}
+      {{end}}
+      </tbody>
+    </table>
+    <div id="excel-result"></div>
+  </div>
+{{end}}
